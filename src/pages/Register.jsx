@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import useDocumentTitle from "../components/title";
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -21,6 +22,7 @@ function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
+  useDocumentTitle("Register");
 
   const validate = () => {
     let isValid = true;

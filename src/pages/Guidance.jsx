@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { FiSave, FiBookmark, FiChevronRight, FiCheck, FiX, FiActivity, FiLogOut, FiChevronLeft, FiChevronDown } from "react-icons/fi";
+import useDocumentTitle from "../components/title";
 
 const Guidance = () => {
   const token = localStorage.getItem("token");
@@ -23,6 +24,7 @@ const Guidance = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const navigate = useNavigate();
+  useDocumentTitle('Assessment');
 
   // Fetch saved reports
   useEffect(() => {

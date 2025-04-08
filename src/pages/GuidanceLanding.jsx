@@ -1,9 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import video from "../assets/video.mp4";
-import { motion } from "framer-motion";
+import { motion } from "framer-motion"; 
+import useDocumentTitle from "../components/title";
 
 const GuidanceLanding = () => {
   const navigate = useNavigate();
+  useDocumentTitle("Welcome");
 
   return (
     <div className="relative w-full min-h-screen flex items-center justify-center text-white overflow-hidden">

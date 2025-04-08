@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { motion } from "framer-motion";
 import { Mail, Lock } from "lucide-react";
+import useDocumentTitle from "../components/title";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -14,6 +15,7 @@ const Login = () => {
     message: ""
   });
   const navigate = useNavigate();
+  useDocumentTitle("Login");
 
   // Load remembered email on component mount
   useEffect(() => {

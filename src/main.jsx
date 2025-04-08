@@ -4,7 +4,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./index.css";
 import Home from "./pages/Home";
 import Guidance from "./pages/Guidance"; // We'll create this next
-import Navbar from "./components/Navbar"
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ReportDetailPage from './pages/ReportDetailPage';

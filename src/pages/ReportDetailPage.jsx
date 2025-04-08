@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FiArrowLeft, FiDownload, FiPrinter } from 'react-icons/fi';
 import { motion } from 'framer-motion';
+import useDocumentTitle from '../components/title';
 
 const ReportDetailPage = () => {
   const { id } = useParams();
@@ -10,6 +11,7 @@ const ReportDetailPage = () => {
   const [report, setReport] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  useDocumentTitle('Report Details');
 
   useEffect(() => {
     const fetchReport = async () => {
