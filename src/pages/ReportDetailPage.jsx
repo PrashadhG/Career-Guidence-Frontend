@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { FiArrowLeft, FiDownload, FiPrinter } from 'react-icons/fi';
+import { FiArrowLeft, FiDownload, FiLoader } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import useDocumentTitle from '../components/title';
+import { useRef } from 'react';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 const ReportDetailPage = () => {
   const { id } = useParams();
@@ -12,6 +15,7 @@ const ReportDetailPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   useDocumentTitle('Report Details');
+  const reportRef = useRef();
 
   useEffect(() => {
     const fetchReport = async () => {
@@ -30,29 +34,20 @@ const ReportDetailPage = () => {
     fetchReport();
   }, [id]);
 
-  const handlePrint = () => {
+  const handlePrint = async () => { 
     window.print();
-  };
-
-  const handleDownload = () => {
-    // Implement PDF generation/download
-    alert('PDF download functionality would be implemented here');
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
-      </div>
-    );
   }
+
+  const handleDownload = async () => {
+    
+  };
 
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded max-w-md">
           <p>{error}</p>
-          <button 
+          <button
             onClick={() => navigate('/guidance')}
             className="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
           >
@@ -79,18 +74,30 @@ const ReportDetailPage = () => {
             <FiArrowLeft className="mr-2" /> Back
           </button>
           <div className="flex space-x-4">
-            
-            <button
+            <motion.button
               onClick={handlePrint}
               className="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              disabled={isLoading}
             >
-              <FiPrinter className="mr-2" /> Download PDF
-            </button>
+              {isLoading ? (
+                <>
+                  <FiLoader className="animate-spin mr-2" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <FiDownload className="mr-2" /> Download PDF
+                </>
+              )}
+            </motion.button>
           </div>
         </div>
 
         {/* Report Card */}
         <motion.div
+          ref={reportRef}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -157,7 +164,7 @@ const ReportDetailPage = () => {
               <h2 className="text-2xl font-bold text-gray-800 mb-4">
                 Detailed Results
               </h2>
-              
+
               {/* Aptitude Scores */}
               {report.results?.individual_results?.aptitude?.scores && (
                 <div className="mb-8">
@@ -174,8 +181,8 @@ const ReportDetailPage = () => {
                           <span className="font-medium">{score}%</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2.5">
-                          <div 
-                            className="bg-blue-600 h-2.5 rounded-full" 
+                          <div
+                            className="bg-blue-600 h-2.5 rounded-full"
                             style={{ width: `${score}%` }}
                           ></div>
                         </div>

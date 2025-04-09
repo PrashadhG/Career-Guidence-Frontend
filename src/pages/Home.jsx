@@ -16,6 +16,10 @@ const Home = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+
+  useEffect(() => {
+    document.title = "Career Pathfinder"; 
+  }, []);
   
 
   const scrollToSection = (id) => {
