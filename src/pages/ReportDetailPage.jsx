@@ -4,9 +4,7 @@ import axios from 'axios';
 import { FiArrowLeft, FiDownload, FiLoader } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import useDocumentTitle from '../components/title';
-import { useRef } from 'react';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
+
 
 const ReportDetailPage = () => {
   const { id } = useParams();
@@ -15,7 +13,6 @@ const ReportDetailPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   useDocumentTitle('Report Details');
-  const reportRef = useRef();
 
   useEffect(() => {
     const fetchReport = async () => {
@@ -97,7 +94,6 @@ const ReportDetailPage = () => {
 
         {/* Report Card */}
         <motion.div
-          ref={reportRef}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
