@@ -2,13 +2,14 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { motion } from "framer-motion";
-import { Mail, Lock } from "lucide-react";
+import { Mail, Lock, Loader2 } from "lucide-react"; // Added Loader2
 import useDocumentTitle from "../components/title";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Added loading state
   const [errors, setErrors] = useState({
     email: "",
     password: "",
@@ -29,18 +30,22 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setErrors({ email: "", password: "", message: "" }); // Reset errors
+    setIsLoading(true); // Start loading
 
     // Basic validation
     if (!email) {
       setErrors(prev => ({ ...prev, email: "Email is required" }));
+      setIsLoading(false);
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setErrors(prev => ({ ...prev, email: "Invalid email format" }));
+      setIsLoading(false);
       return;
     }
     if (!password) {
       setErrors(prev => ({ ...prev, password: "Password is required" }));
+      setIsLoading(false);
       return;
     }
 
@@ -67,6 +72,8 @@ const Login = () => {
       } else {
         setErrors(prev => ({ ...prev, message: "An error occurred. Please try again." }));
       }
+    } finally {
+      setIsLoading(false); // Stop loading regardless of success/error
     }
   };
 
@@ -154,9 +161,16 @@ const Login = () => {
 
           <button
             type="submit"
-            className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors cursor-pointer"
+            disabled={isLoading}
+            className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors cursor-pointer flex justify-center items-center"
           >
-            Sign in
+            {isLoading ? (
+              <>
+                <Loader2 className="animate-spin h-7 w-7 mr-2" />
+              </>
+            ) : (
+              "Sign in"
+            )}
           </button>
         </form>
 

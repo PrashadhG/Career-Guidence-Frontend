@@ -3,13 +3,13 @@ import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { FiSave, FiBookmark, FiChevronRight, FiCheck, FiX, FiActivity, FiLogOut, FiChevronLeft, FiChevronDown } from "react-icons/fi";
+import { FiSave, FiBookmark, FiChevronRight, FiCheck, FiX, FiActivity, FiLogOut } from "react-icons/fi";
 import useDocumentTitle from "../components/title";
 
 const Guidance = () => {
   const token = localStorage.getItem("token");
   const [level, setLevel] = useState("");
-  const [questions, setQuestions] = useState({ personality: [], orientation: [], interest: [], aptitude: [] });
+  const [questions, setQuestions] = useState({ personality: [], orientation: [], interest: [] });
   const [answers, setAnswers] = useState({});
   const [result, setResult] = useState(null);
   const [selectedCareer, setSelectedCareer] = useState(null);
@@ -20,11 +20,8 @@ const Guidance = () => {
   const [savedReports, setSavedReports] = useState([]);
   const [activeTab, setActiveTab] = useState("assessment");
   const [assessmentId] = useState(uuidv4());
-  const [currentCategory, setCurrentCategory] = useState("personality");
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const navigate = useNavigate();
-  useDocumentTitle('Assessment');
+  useDocumentTitle("Assessment");
 
   // Fetch saved reports
   useEffect(() => {
@@ -34,30 +31,28 @@ const Guidance = () => {
           headers: { "x-auth-token": token }
         });
         setSavedReports(res.data);
+        console.log("REPORT FETCH : ", res.data)
       } catch (error) {
         console.error("Error fetching reports:", error);
       }
     };
     
-    if (token) {
-      fetchReports();
-    }
-  }, [token]);
+    fetchReports();
+  }, []);
 
   const handleStartQuiz = async () => {
     if (!level) return alert("Please select a grade!");
 
     const requestData = {
       level,
-      categories: ["personality", "orientation", "interest", "aptitude"],
-      questions_per_category: 20
+      categories: ["personality", "orientation", "interest","aptitude"],
+      questions_per_category: 10
     };
 
     try {
       const res = await axios.post("http://127.0.0.1:8000/generate_psychometric_assessment", requestData);
       setQuestions(res.data.questions_by_category);
-      setCurrentCategory(Object.keys(res.data.questions_by_category)[0]);
-      setCurrentQuestionIndex(0);
+      console.log("Assesnment Generated : ", res.data)
       setAnswers({});
       setResult(null);
       setSelectedCareer(null);
@@ -69,52 +64,18 @@ const Guidance = () => {
     }
   };
 
-  const handleAnswerSelect = (questionId, selectedOption) => {
+  const handleAnswerSelect = (category, questionId, selectedOption) => {
     setAnswers(prev => ({
       ...prev,
       [questionId]: selectedOption[0]
     }));
   };
 
-  const handleCategoryChange = (category) => {
-    setCurrentCategory(category);
-    setCurrentQuestionIndex(0);
-    setShowCategoryDropdown(false);
-  };
-
-  const handleNextQuestion = () => {
-    if (currentQuestionIndex < questions[currentCategory].length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    } else {
-      // Move to next category if available
-      const categories = Object.keys(questions).filter(cat => questions[cat].length > 0);
-      const currentCatIndex = categories.indexOf(currentCategory);
-      if (currentCatIndex < categories.length - 1) {
-        setCurrentCategory(categories[currentCatIndex + 1]);
-        setCurrentQuestionIndex(0);
-      }
-    }
-  };
-
-  const handlePrevQuestion = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
-    } else {
-      // Move to previous category if available
-      const categories = Object.keys(questions).filter(cat => questions[cat].length > 0);
-      const currentCatIndex = categories.indexOf(currentCategory);
-      if (currentCatIndex > 0) {
-        setCurrentCategory(categories[currentCatIndex - 1]);
-        setCurrentQuestionIndex(questions[categories[currentCatIndex - 1]].length - 1);
-      }
-    }
-  };
-
   const handleSubmitQuiz = async () => {
     if (Object.keys(answers).length !== Object.values(questions).flat().length) {
       return alert("Please answer all questions!");
     }
-
+  
     const formattedAnswers = {
       user_id: assessmentId,
       orientation_responses: {},
@@ -128,19 +89,30 @@ const Guidance = () => {
         Verbal_Reasoning: 0
       }
     };
-
     Object.keys(questions).forEach(category => {
-      questions[category].forEach(q => {
-        formattedAnswers[`${category}_responses`][q.id] = answers[q.id] || "";
+      if (!formattedAnswers[`${category}_responses`]) {
+        formattedAnswers[`${category}_responses`] = {};
+      }
+  
+      const categoryQuestions = questions[category] || [];
+      
+      categoryQuestions.forEach((q, index) => {
+        const questionId = q?.id || `${category}_${index + 1}`;
+      
+        if (answers[questionId] !== undefined) {
+          formattedAnswers[`${category}_responses`][questionId] = answers[questionId];
+        }
       });
     });
-
+  
     try {
       const res = await axios.post("http://127.0.0.1:8000/analyze_complete_assessment", formattedAnswers);
       setResult(res.data);
+      console.log("Assessment RESULTS: ", res.data);
       setActiveTab("results");
     } catch (error) {
       console.error("Error analyzing assessment:", error);
+      alert("Failed to submit assessment. Please try again.");
     }
   };
 
@@ -156,6 +128,7 @@ const Guidance = () => {
     try {
       const res = await axios.post("http://127.0.0.1:8000/generate_activities", requestData);
       setActivities(res.data.activities);
+      console.log("Activities Generated : ", res.data)
       setActiveTab("activity");
     } catch (error) {
       console.error("Error fetching activities:", error);
@@ -177,6 +150,7 @@ const Guidance = () => {
     try {
       const res = await axios.post("http://127.0.0.1:8000/evaluate_activity/", requestData);
       setEvaluationResult(res.data.evaluation);
+      console.log("Activitiess Evaluation Result : ", res.data)
       setActiveTab("evaluation");
     } catch (error) {
       console.error("Error evaluating response:", error);
@@ -189,6 +163,7 @@ const Guidance = () => {
     try {
       setIsSaving(true);
       
+      
       await axios.post("http://localhost:5000/api/reports", {
         assessmentId,
         level,
@@ -198,17 +173,20 @@ const Guidance = () => {
         activities,
         evaluationResults: evaluationResult ? [evaluationResult] : []
       }, {
-        headers: { "x-auth-token": token }
+        headers: { "x-auth-token": token }  // Changed to match middleware
       });
       
       const res = await axios.get("http://localhost:5000/api/reports/my", {
-        headers: { "x-auth-token": token }
+        headers: { "x-auth-token": token }  // Changed to match middleware
       });
       setSavedReports(res.data);
     } catch (error) {
       console.error("Error saving report:", error);
+      // Add error handling for 401 unauthorized
       if (error.response?.status === 401) {
-        navigate("/");
+        // Handle unauthorized (token expired/invalid)
+        console.log("Please login again");
+        // Optionally redirect to login
       }
     } finally {
       setIsSaving(false);
@@ -233,7 +211,7 @@ const Guidance = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-purple-900 text-white">
+    <div className="min-h-screen  bg-gradient-to-br from-gray-900 to-purple-900 text-white">
       {/* Navigation */}
       <nav className="bg-gray-800 bg-opacity-50 backdrop-blur-md p-4 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -244,11 +222,11 @@ const Guidance = () => {
             CareerPathfinder
           </button>
           <div className="flex space-x-4">
-            <button 
+          <button 
               onClick={() => setActiveTab("assessment")}
               className="flex items-center px-4 py-2 rounded-lg bg-purple-700 hover:bg-purple-600 transition"
             >
-              <FiActivity className="mr-2" /> Assessment
+              <FiActivity className="mr-2" /> Assesment
             </button>
             <button 
               onClick={() => setActiveTab("reports")}
@@ -283,7 +261,9 @@ const Guidance = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {savedReports.map(report => (
+                {savedReports && (
+                  <>
+                  {savedReports.map(report => (
                   <motion.div 
                     key={report._id}
                     className="bg-gray-700 rounded-xl p-5 hover:shadow-lg transition-shadow cursor-pointer"
@@ -307,6 +287,9 @@ const Guidance = () => {
                     </div>
                   </motion.div>
                 ))}
+                  </>
+                )}
+                
               </div>
             )}
           </div>
@@ -386,139 +369,52 @@ const Guidance = () => {
                   </div>
                 )}
 
-                {/* Questions with Pagination */}
+                {/* Questions */}
                 {Object.values(questions).flat().length > 0 && (
                   <div className="space-y-8">
-                    <div className="flex justify-between items-center mb-6">
-                      <div className="relative">
-                        <button
-                          onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-                          className="flex items-center px-4 py-2 bg-gray-700 rounded-lg"
-                        >
-                          <span className="capitalize mr-2">{currentCategory.replace('_', ' ')}</span>
-                          <FiChevronDown className={`transition-transform ${showCategoryDropdown ? 'rotate-180' : ''}`} />
-                        </button>
-                        {showCategoryDropdown && (
-                          <motion.div
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="absolute z-10 mt-1 w-full bg-gray-700 rounded-lg shadow-lg"
-                          >
-                            {Object.keys(questions)
-                              .filter(cat => questions[cat].length > 0)
-                              .map(category => (
-                                <button
-                                  key={category}
-                                  onClick={() => handleCategoryChange(category)}
-                                  className={`w-full text-left px-4 py-2 hover:bg-gray-600 rounded-lg capitalize ${
-                                    currentCategory === category ? 'bg-gray-600' : ''
-                                  }`}
-                                >
-                                  {category.replace('_', ' ')}
-                                </button>
-                              ))}
-                          </motion.div>
-                        )}
-                      </div>
-                      
-                      <div className="text-gray-300">
-                        Question {currentQuestionIndex + 1} of {questions[currentCategory].length} in this category
-                      </div>
-                    </div>
-
-                    <div className="bg-gray-700 rounded-lg p-6">
-                      <div className="bg-gray-800 rounded-lg p-4">
-                        <h4 className="font-bold text-lg mb-3">
-                          {questions[currentCategory][currentQuestionIndex]?.question}
-                        </h4>
-                        <ul className="space-y-2">
-                          {questions[currentCategory][currentQuestionIndex]?.options.map((option, i) => (
-                            <motion.li
-                              key={i}
-                              whileHover={{ x: 5 }}
-                              className={`cursor-pointer p-3 rounded-lg transition-colors ${
-                                answers[questions[currentCategory][currentQuestionIndex]?.id] === option[0]
-                                  ? 'bg-gradient-to-r from-blue-700 to-purple-700'
-                                  : 'bg-gray-600 hover:bg-gray-500'
-                              }`}
-                              onClick={() => handleAnswerSelect(
-                                questions[currentCategory][currentQuestionIndex]?.id,
-                                option
-                              )}
-                            >
-                              {option}
-                            </motion.li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      <div className="flex justify-between mt-6">
-                        <button
-                          onClick={handlePrevQuestion}
-                          disabled={currentQuestionIndex === 0 && 
-                                   Object.keys(questions).indexOf(currentCategory) === 0}
-                          className={`flex items-center px-4 py-2 rounded-lg ${
-                            currentQuestionIndex === 0 && 
-                            Object.keys(questions).indexOf(currentCategory) === 0
-                              ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                              : 'bg-gray-600 hover:bg-gray-500'
-                          }`}
-                        >
-                          <FiChevronLeft className="mr-2" /> Previous
-                        </button>
-
-                        <div className="flex space-x-2">
-                          {Object.keys(questions).map((cat, i) => (
-                            <div
-                              key={i}
-                              className={`w-3 h-3 rounded-full ${
-                                cat === currentCategory ? 'bg-purple-500' : 'bg-gray-500'
-                              }`}
-                            />
-                          ))}
+                    {Object.keys(questions).map((category) => (
+                      questions[category].length > 0 && (
+                        <div key={category} className="bg-gray-700 rounded-lg p-6">
+                          <h3 className="text-xl font-bold mb-4 capitalize border-b border-gray-600 pb-2">
+                            {category} Questions
+                          </h3>
+                          <div className="space-y-6">
+                            {questions[category].map((q, index) => (
+                              <div key={q.id} className="bg-gray-800 rounded-lg p-4">
+                                <h4 className="font-bold text-lg mb-3">
+                                  {index + 1}. {q.question}
+                                </h4>
+                                <ul className="space-y-2">
+                                  {q.options.map((option, i) => (
+                                    <motion.li
+                                      key={i}
+                                      whileHover={{ x: 5 }}
+                                      className={`cursor-pointer p-3 rounded-lg transition-colors ${
+                                        answers[q.id] === option[0] 
+                                          ? 'bg-gradient-to-r from-blue-700 to-purple-700' 
+                                          : 'bg-gray-600 hover:bg-gray-500'
+                                      }`}
+                                      onClick={() => handleAnswerSelect(category, q.id, option)}
+                                    >
+                                      {option}
+                                    </motion.li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-
-                        <button
-                          onClick={handleNextQuestion}
-                          disabled={
-                            currentQuestionIndex === questions[currentCategory].length - 1 &&
-                            Object.keys(questions).indexOf(currentCategory) === Object.keys(questions).length - 1
-                          }
-                          className={`flex items-center px-4 py-2 rounded-lg ${
-                            currentQuestionIndex === questions[currentCategory].length - 1 &&
-                            Object.keys(questions).indexOf(currentCategory) === Object.keys(questions).length - 1
-                              ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                              : 'bg-gray-600 hover:bg-gray-500'
-                          }`}
-                        >
-                          Next <FiChevronRight className="ml-2" />
-                        </button>
-                      </div>
-                    </div>
+                      )
+                    ))}
 
                     <div className="flex justify-center">
                       <motion.button
                         onClick={handleSubmitQuiz}
-                        disabled={Object.keys(answers).length !== Object.values(questions).flat().length}
-                        className={`px-8 py-4 rounded-xl text-lg font-bold shadow-lg transition-all ${
-                          Object.keys(answers).length !== Object.values(questions).flat().length
-                            ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                            : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:shadow-xl'
-                        }`}
-                        whileHover={
-                          Object.keys(answers).length === Object.values(questions).flat().length 
-                            ? { scale: 1.05 } 
-                            : {}
-                        }
-                        whileTap={
-                          Object.keys(answers).length === Object.values(questions).flat().length 
-                            ? { scale: 0.95 } 
-                            : {}
-                        }
+                        className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transition-all"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                       >
-                        {Object.keys(answers).length === Object.values(questions).flat().length
-                          ? 'Submit Assessment'
-                          : `Answered ${Object.keys(answers).length}/${Object.values(questions).flat().length} questions`}
+                        Submit Assessment
                       </motion.button>
                     </div>
                   </div>
@@ -549,15 +445,15 @@ const Guidance = () => {
                   <div className="bg-gray-700 rounded-xl p-6">
                     <h3 className="text-xl font-bold mb-4 text-purple-300">Personality Traits</h3>
                     <ul className="space-y-2">
-                      {result.individual_results.personality?.dominant_traits && 
-                        Object.keys(result.individual_results.personality.dominant_traits).map((trait, i) => (
-                          <li key={i} className="flex items-center">
-                            <span className="w-4 h-4 bg-purple-500 rounded-full mr-2"></span>
-                            <span className="capitalize">{trait.replace(/_/g, ' ')}</span>
-                          </li>
-                        ))
-                      }
-                    </ul>
+  {result.individual_results.personality?.dominant_traits && 
+    Object.keys(result.individual_results.personality.dominant_traits).map((trait, i) => (
+      <li key={i} className="flex items-center">
+        <span className="w-4 h-4 bg-purple-500 rounded-full mr-2"></span>
+        <span className="capitalize">{trait.replace(/_/g, ' ')}</span>
+      </li>
+    ))
+  }
+</ul>
                   </div>
 
                   <div className="bg-gray-700 rounded-xl p-6">
@@ -584,27 +480,7 @@ const Guidance = () => {
                     </div>
                   </div>
 
-                  <div className="bg-gray-700 rounded-xl p-6">
-                    <h3 className="text-xl font-bold mb-4 text-green-300">Aptitude Scores</h3>
-                    <div className="space-y-3">
-                      {result.individual_results.aptitude?.scores && 
-                        Object.entries(result.individual_results.aptitude.scores).map(([aptitude, score]) => (
-                          <div key={aptitude}>
-                            <div className="flex justify-between text-sm mb-1">
-                              <span className="capitalize">{aptitude.replace(/_/g, ' ')}</span>
-                              <span>{score}%</span>
-                            </div>
-                            <div className="w-full bg-gray-800 rounded-full h-2">
-                              <div 
-                                className="bg-green-500 h-2 rounded-full" 
-                                style={{ width: `${score}%` }}
-                              ></div>
-                            </div>
-                          </div>
-                        ))
-                      }
-                    </div>
-                  </div>
+                  
                 </div>
 
                 <h3 className="text-2xl font-bold mb-6 text-center">Top Career Matches</h3>
@@ -746,39 +622,21 @@ const Guidance = () => {
                     </div>
                   </div>
 
-                  <div className="bg-gradient-to-br from-blue-700 to-teal-700 rounded-xl p-6">
+                  {/* <div className="bg-gradient-to-br from-blue-700 to-teal-700 rounded-xl p-6">
                     <h3 className="text-xl font-bold mb-4">Strengths Identified</h3>
                     <ul className="space-y-2">
-                      {evaluationResult.strengths.map((strength, i) => (
+                      {evaluationResult.skill_development.focus_areas.map((strength, i) => (
                         <li key={i} className="flex items-start">
                           <FiCheck className="text-green-400 mt-1 mr-2 flex-shrink-0" />
                           {strength}
                         </li>
                       ))}
                     </ul>
-                  </div>
+                  </div> */}
 
-                  <div className="bg-gradient-to-br from-purple-700 to-pink-700 rounded-xl p-6">
-                    <h3 className="text-xl font-bold mb-4">Areas for Improvement</h3>
-                    <ul className="space-y-2">
-                      {evaluationResult.areas_for_improvement.map((area, i) => (
-                        <li key={i} className="flex items-start">
-                          <FiX className="text-red-400 mt-1 mr-2 flex-shrink-0" />
-                          {area}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
                 </div>
 
-                <div className="bg-gray-700 rounded-xl p-6 mb-8">
-                  <h3 className="text-xl font-bold mb-4">Detailed Feedback</h3>
-                  <div className="prose prose-invert max-w-none">
-                    {evaluationResult.detailed_feedback.split('\n').map((paragraph, i) => (
-                      <p key={i} className="mb-4">{paragraph}</p>
-                    ))}
-                  </div>
-                </div>
+                
 
                 <div className="flex justify-center mt-8 space-x-6">
                   <button

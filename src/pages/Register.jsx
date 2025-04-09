@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, Loader2 } from 'lucide-react'; // Added Loader2
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import useDocumentTitle from "../components/title";
@@ -221,9 +221,15 @@ function Register() {
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors ${isLoading ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'}`}
+            className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors flex justify-center items-center"
           >
-            {isLoading ? 'Creating account...' : 'Create account'}
+            {isLoading ? (
+              <>
+                <Loader2 className="animate-spin h-7 w-7 mr-2" />
+              </>
+            ) : (
+              "Create account"
+            )}
           </button>
         </form>
 

@@ -1,44 +1,77 @@
 import { useNavigate } from "react-router-dom";
 import video from "../assets/video.mp4";
 import { motion } from "framer-motion";
-import { Menu, X, Github, Twitter, Linkedin, Mail } from 'lucide-react';
-import React, { useState } from 'react';
+import { Menu, X, Github, Twitter, Linkedin, Mail, Activity } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import AboutImage from "../assets/about.png";
-import useDocumentTitle from "../components/title";
-
 const Home = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('steps');
-  useDocumentTitle("Welcome");
+  const [isScrolled, setIsScrolled] = useState(false);
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  
+
+  const scrollToSection = (id) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+    setIsMenuOpen(false);
+  };
+
   return (
-    <div className="bg-gray-900 text-white">
+    <div className="bg-gray-900 text-white scroll-snap-y-mandatory">
       {/* Header */}
-      <header className="fixed w-full z-50 bg-gray-900/80 backdrop-blur-sm border-b border-gray-800">
+      <header className={`fixed w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-gray-900/80 backdrop-blur-sm border-b border-gray-800' : 'bg-white/80 backdrop-blur-sm border-b border-gray-200'}`}>
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             {/* Logo */}
             <div className="flex items-center">
-              <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
-                CareerPathfinder
+              <span className={`text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r ${isScrolled ? 'from-blue-400 to-purple-600' : 'from-blue-500 to-purple-600'}`}>
+                Career Pathfinder
               </span>
             </div>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
-              <a href="#steps" className="hover:text-purple-400 transition">Steps</a>
-              <a href="#about" className="hover:text-purple-400 transition">About</a>
-              <a href="#contact" className="hover:text-purple-400 transition">Contact</a>
+              <button 
+                onClick={() => scrollToSection('steps')}
+                className={`transition ${isScrolled ? 'text-gray-300 hover:text-purple-400' : 'text-gray-700 hover:text-purple-600'}`}
+              >
+                Steps
+              </button>
+              <button 
+                onClick={() => scrollToSection('about')}
+                className={`transition ${isScrolled ? 'text-gray-300 hover:text-purple-400' : 'text-gray-700 hover:text-purple-600'}`}
+              >
+                About
+              </button>
+              <button 
+                onClick={() => scrollToSection('contact')}
+                className={`transition ${isScrolled ? 'text-gray-300 hover:text-purple-400' : 'text-gray-700 hover:text-purple-600'}`}
+              >
+                Contact
+              </button>
               <div className="flex space-x-4 ml-8">
                 <button
                   onClick={() => navigate("/")}
-                  className="px-4 py-2 rounded-lg hover:bg-gray-800 transition"
+                  className={`px-4 py-2 rounded-lg transition ${isScrolled ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100'}`}
                 >
                   Login
                 </button>
                 <button
                   onClick={() => navigate("/register")}
-                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg hover:opacity-90 transition"
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:opacity-90 transition"
                 >
                   Sign Up
                 </button>
@@ -47,7 +80,10 @@ const Home = () => {
 
             {/* Mobile menu button */}
             <div className="md:hidden">
-              <button onClick={() => setIsMenuOpen(!isMenuOpen)}>
+              <button 
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className={isScrolled ? 'text-white' : 'text-gray-700'}
+              >
                 {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
             </div>
@@ -55,20 +91,35 @@ const Home = () => {
 
           {/* Mobile Navigation */}
           {isMenuOpen && (
-            <div className="md:hidden mt-4 pb-4 space-y-4">
-              <a href="#steps" className="block hover:text-purple-400 transition" onClick={() => setIsMenuOpen(false)}>Steps</a>
-              <a href="#about" className="block hover:text-purple-400 transition" onClick={() => setIsMenuOpen(false)}>About</a>
-              <a href="#contact" className="block hover:text-purple-400 transition" onClick={() => setIsMenuOpen(false)}>Contact</a>
+            <div className={`md:hidden mt-4 pb-4 space-y-4 rounded-lg p-4 ${isScrolled ? 'bg-gray-800/90' : 'bg-white'} shadow-lg`}>
+              <button 
+                onClick={() => scrollToSection('steps')}
+                className={`block transition ${isScrolled ? 'text-gray-300 hover:text-purple-400' : 'text-gray-700 hover:text-purple-600'}`}
+              >
+                Steps
+              </button>
+              <button 
+                onClick={() => scrollToSection('about')}
+                className={`block transition ${isScrolled ? 'text-gray-300 hover:text-purple-400' : 'text-gray-700 hover:text-purple-600'}`}
+              >
+                About
+              </button>
+              <button 
+                onClick={() => scrollToSection('contact')}
+                className={`block transition ${isScrolled ? 'text-gray-300 hover:text-purple-400' : 'text-gray-700 hover:text-purple-600'}`}
+              >
+                Contact
+              </button>
               <div className="flex space-x-4 pt-2">
                 <button
                   onClick={() => { navigate("/"); setIsMenuOpen(false); }}
-                  className="px-4 py-2 rounded-lg hover:bg-gray-800 transition"
+                  className={`px-4 py-2 rounded-lg transition ${isScrolled ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100'}`}
                 >
                   Login
                 </button>
                 <button
                   onClick={() => { navigate("/register"); setIsMenuOpen(false); }}
-                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg hover:opacity-90 transition"
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:opacity-90 transition"
                 >
                   Sign Up
                 </button>
@@ -79,7 +130,10 @@ const Home = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="relative w-full min-h-screen flex items-center justify-center text-white overflow-hidden pt-16">
+      <section 
+        id="home" 
+        className="relative w-full h-screen flex items-center justify-center text-white overflow-hidden pt-16 snap-start"
+      >
         <video
           autoPlay
           loop
@@ -116,13 +170,13 @@ const Home = () => {
           ))}
         </div>
 
-        <motion.div
+        <motion.div 
           className="relative z-10 text-center px-6 max-w-4xl"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
-          <motion.h1
+          <motion.h1 
             className="text-5xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600"
             animate={{
               textShadow: ["0 0 8px rgba(96, 165, 250, 0.5)", "0 0 16px rgba(168, 85, 247, 0.5)", "0 0 8px rgba(96, 165, 250, 0.5)"]
@@ -135,8 +189,8 @@ const Home = () => {
           >
             Discover Your Dream Career
           </motion.h1>
-
-          <motion.p
+          
+          <motion.p 
             className="text-xl md:text-2xl mt-4 mb-8 max-w-2xl mx-auto leading-relaxed"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -144,14 +198,14 @@ const Home = () => {
           >
             Take our <span className="font-semibold text-purple-300">AI-powered assessment</span> and unlock personalized career recommendations tailored to your unique strengths and interests.
           </motion.p>
-
+          
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6, duration: 0.5 }}
           >
             <button
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/register")}
               className="mt-6 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl flex items-center mx-auto group cursor-pointer"
             >
               Start Your Journey
@@ -180,7 +234,10 @@ const Home = () => {
       </section>
 
       {/* Steps Section */}
-      <section id="steps" className="py-20 bg-gray-900">
+      <section 
+        id="steps" 
+        className="py-20 bg-gray-900 h-screen snap-start flex items-center"
+      >
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
@@ -200,7 +257,7 @@ const Home = () => {
               <div className="text-purple-400 mb-4 text-2xl font-bold">01</div>
               <h3 className="text-2xl font-semibold mb-4">Take the Assessment</h3>
               <p className="text-gray-300 mb-6">
-                Complete our AI-powered assessment that evaluates your skills, interests, and personality traits.
+                Complete our 15-minute AI-powered assessment that evaluates your skills, interests, and personality traits.
               </p>
             </motion.div>
 
@@ -232,13 +289,16 @@ const Home = () => {
       </section>
 
       {/* About Section */}
-      <section id="about" className="py-20 bg-gray-800/30">
+      <section 
+        id="about" 
+        className="py-20 bg-gray-800/30 h-screen snap-start flex items-center"
+      >
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center gap-12">
             <div className="md:w-1/2">
-              <img
-                src={AboutImage}
-                alt="About CareerPath"
+              <img 
+                src={AboutImage} 
+                alt="About CareerPath" 
                 className="rounded-xl shadow-2xl"
               />
             </div>
@@ -263,9 +323,7 @@ const Home = () => {
                 </div>
                 <div className="flex items-center">
                   <div className="mr-4 text-purple-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                    </svg>
+                    <Activity size={24} />
                   </div>
                   <span className="text-gray-300">Activity-Based</span>
                 </div>
@@ -284,7 +342,10 @@ const Home = () => {
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-20 bg-gray-900">
+      <section 
+        id="contact" 
+        className="py-20 bg-gray-900 h-screen snap-start flex items-center"
+      >
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
@@ -300,32 +361,32 @@ const Home = () => {
               <form className="space-y-6">
                 <div>
                   <label htmlFor="name" className="block text-gray-300 mb-2">Name</label>
-                  <input
-                    type="text"
-                    id="name"
+                  <input 
+                    type="text" 
+                    id="name" 
                     className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                     placeholder="Your name"
                   />
                 </div>
                 <div>
                   <label htmlFor="email" className="block text-gray-300 mb-2">Email</label>
-                  <input
-                    type="email"
-                    id="email"
+                  <input 
+                    type="email" 
+                    id="email" 
                     className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                     placeholder="your@email.com"
                   />
                 </div>
                 <div>
                   <label htmlFor="message" className="block text-gray-300 mb-2">Message</label>
-                  <textarea
-                    id="message"
+                  <textarea 
+                    id="message" 
                     rows="5"
                     className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                     placeholder="Your message"
                   ></textarea>
                 </div>
-                <button
+                <button 
                   type="submit"
                   className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg hover:opacity-90 transition w-full md:w-auto"
                 >
@@ -417,10 +478,10 @@ const Home = () => {
               <div>
                 <h4 className="text-lg font-semibold mb-4 text-gray-300">Quick Links</h4>
                 <ul className="space-y-2">
-                  <li><a href="#" className="text-gray-400 hover:text-purple-400 transition">Home</a></li>
-                  <li><a href="#steps" className="text-gray-400 hover:text-purple-400 transition">How It Works</a></li>
-                  <li><a href="#about" className="text-gray-400 hover:text-purple-400 transition">About</a></li>
-                  <li><a href="#contact" className="text-gray-400 hover:text-purple-400 transition">Contact</a></li>
+                  <li><button onClick={() => scrollToSection('home')} className="text-gray-400 hover:text-purple-400 transition">Home</button></li>
+                  <li><button onClick={() => scrollToSection('steps')} className="text-gray-400 hover:text-purple-400 transition">How It Works</button></li>
+                  <li><button onClick={() => scrollToSection('about')} className="text-gray-400 hover:text-purple-400 transition">About</button></li>
+                  <li><button onClick={() => scrollToSection('contact')} className="text-gray-400 hover:text-purple-400 transition">Contact</button></li>
                 </ul>
               </div>
               <div>
