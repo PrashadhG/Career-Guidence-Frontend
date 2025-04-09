@@ -3,7 +3,7 @@ import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { FiSave, FiBookmark, FiChevronRight, FiCheck, FiX, FiActivity, FiLogOut } from "react-icons/fi";
+import { FiSave, FiBookmark, FiChevronRight, FiCheck, FiX, FiActivity, FiLogOut, FiLoader } from "react-icons/fi"; 
 import useDocumentTitle from "../components/title";
 
 const Guidance = () => {
@@ -20,10 +20,25 @@ const Guidance = () => {
   const [savedReports, setSavedReports] = useState([]);
   const [activeTab, setActiveTab] = useState("assessment");
   const [assessmentId] = useState(uuidv4());
+  const [currentCategory, setCurrentCategory] = useState('personality');
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [isGeneratingQuestions, setIsGeneratingQuestions] = useState(false);
+  const [isGeneratingActivities, setIsGeneratingActivities] = useState(false);
+  const [isSubmittingAssessment, setIsSubmittingAssessment] = useState(false);
+  const [isSubmittingResponse, setIsSubmittingResponse] = useState(false);
   const navigate = useNavigate();
   useDocumentTitle("Assessment");
 
-  // Fetch saved reports
+  const calculateProgress = () => {
+    const categories = Object.keys(questions);
+    if (categories.length === 0) return 0;
+    const currentCatIndex = categories.indexOf(currentCategory);
+    const progressPerCategory = 100 / categories.length;
+    const categoryProgress = currentCatIndex * progressPerCategory;
+    const questionProgress = ((currentQuestionIndex + 1) / questions[currentCategory].length) * progressPerCategory;
+    return Math.min(100, categoryProgress + questionProgress);
+  };
+
   useEffect(() => {
     const fetchReports = async () => {
       try {
@@ -31,28 +46,26 @@ const Guidance = () => {
           headers: { "x-auth-token": token }
         });
         setSavedReports(res.data);
-        console.log("REPORT FETCH : ", res.data)
       } catch (error) {
         console.error("Error fetching reports:", error);
       }
     };
-    
     fetchReports();
   }, []);
 
   const handleStartQuiz = async () => {
     if (!level) return alert("Please select a grade!");
-
+    setIsGeneratingQuestions(true);
     const requestData = {
       level,
-      categories: ["personality", "orientation", "interest","aptitude"],
+      categories: ["personality", "orientation", "interest", "aptitude"],
       questions_per_category: 10
     };
-
     try {
       const res = await axios.post("http://127.0.0.1:8000/generate_psychometric_assessment", requestData);
       setQuestions(res.data.questions_by_category);
-      console.log("Assesnment Generated : ", res.data)
+      setCurrentCategory(Object.keys(res.data.questions_by_category)[0]);
+      setCurrentQuestionIndex(0);
       setAnswers({});
       setResult(null);
       setSelectedCareer(null);
@@ -61,6 +74,8 @@ const Guidance = () => {
       setEvaluationResult(null);
     } catch (error) {
       console.error("Error fetching questions:", error);
+    } finally {
+      setIsGeneratingQuestions(false);
     }
   };
 
@@ -71,11 +86,39 @@ const Guidance = () => {
     }));
   };
 
+  const handleNextQuestion = () => {
+    const categoryQuestions = questions[currentCategory];
+    if (currentQuestionIndex < categoryQuestions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    } else {
+      const categories = Object.keys(questions);
+      const currentIndex = categories.indexOf(currentCategory);
+      if (currentIndex < categories.length - 1) {
+        setCurrentCategory(categories[currentIndex + 1]);
+        setCurrentQuestionIndex(0);
+      }
+    }
+  };
+
+  const handlePrevQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+    } else {
+      const categories = Object.keys(questions);
+      const currentIndex = categories.indexOf(currentCategory);
+      if (currentIndex > 0) {
+        setCurrentCategory(categories[currentIndex - 1]);
+        setCurrentQuestionIndex(questions[categories[currentIndex - 1]].length - 1);
+      }
+    }
+  };
+
   const handleSubmitQuiz = async () => {
-    if (Object.keys(answers).length !== Object.values(questions).flat().length) {
+    const totalQuestions = Object.values(questions).flat().length;
+    if (Object.keys(answers).length !== totalQuestions) {
       return alert("Please answer all questions!");
     }
-  
+    setIsSubmittingAssessment(true);
     const formattedAnswers = {
       user_id: assessmentId,
       orientation_responses: {},
@@ -90,54 +133,48 @@ const Guidance = () => {
       }
     };
     Object.keys(questions).forEach(category => {
-      if (!formattedAnswers[`${category}_responses`]) {
-        formattedAnswers[`${category}_responses`] = {};
-      }
-  
-      const categoryQuestions = questions[category] || [];
-      
-      categoryQuestions.forEach((q, index) => {
+      formattedAnswers[`${category}_responses`] = {};
+      questions[category].forEach((q, index) => {
         const questionId = q?.id || `${category}_${index + 1}`;
-      
         if (answers[questionId] !== undefined) {
           formattedAnswers[`${category}_responses`][questionId] = answers[questionId];
         }
       });
     });
-  
     try {
       const res = await axios.post("http://127.0.0.1:8000/analyze_complete_assessment", formattedAnswers);
       setResult(res.data);
-      console.log("Assessment RESULTS: ", res.data);
       setActiveTab("results");
     } catch (error) {
       console.error("Error analyzing assessment:", error);
       alert("Failed to submit assessment. Please try again.");
+    }finally{
+      setIsSubmittingAssessment(false);
     }
   };
 
   const handleGenerateActivity = async () => {
     if (!selectedCareer) return alert("Please select a career!");
-
+    setIsGeneratingActivities(true);
     const requestData = {
       career_path: selectedCareer,
       class_level: level,
       specific_area: result.subject_recommendations.core[0]
     };
-
     try {
       const res = await axios.post("http://127.0.0.1:8000/generate_activities", requestData);
       setActivities(res.data.activities);
-      console.log("Activities Generated : ", res.data)
       setActiveTab("activity");
     } catch (error) {
       console.error("Error fetching activities:", error);
+    } finally {
+      setIsGeneratingActivities(false);
     }
   };
 
   const handleSubmitActivityResponse = async () => {
     if (!userResponse.trim()) return alert("Please enter your response!");
-
+    setIsSubmittingResponse(true);
     const requestData = {
       activity_id: activities[0].id,
       response: userResponse,
@@ -146,24 +183,21 @@ const Guidance = () => {
       response_type: "text",
       image_data: ""
     };
-
     try {
       const res = await axios.post("http://127.0.0.1:8000/evaluate_activity/", requestData);
       setEvaluationResult(res.data.evaluation);
-      console.log("Activitiess Evaluation Result : ", res.data)
       setActiveTab("evaluation");
     } catch (error) {
       console.error("Error evaluating response:", error);
+    } finally {
+      setIsSubmittingResponse(false);
     }
   };
 
   const saveReport = async () => {
     if (!result) return;
-    
     try {
       setIsSaving(true);
-      
-      
       await axios.post("http://localhost:5000/api/reports", {
         assessmentId,
         level,
@@ -173,20 +207,16 @@ const Guidance = () => {
         activities,
         evaluationResults: evaluationResult ? [evaluationResult] : []
       }, {
-        headers: { "x-auth-token": token }  // Changed to match middleware
+        headers: { "x-auth-token": token }
       });
-      
       const res = await axios.get("http://localhost:5000/api/reports/my", {
-        headers: { "x-auth-token": token }  // Changed to match middleware
+        headers: { "x-auth-token": token }
       });
       setSavedReports(res.data);
     } catch (error) {
       console.error("Error saving report:", error);
-      // Add error handling for 401 unauthorized
       if (error.response?.status === 401) {
-        // Handle unauthorized (token expired/invalid)
         console.log("Please login again");
-        // Optionally redirect to login
       }
     } finally {
       setIsSaving(false);
@@ -195,10 +225,8 @@ const Guidance = () => {
 
   const getCareerMatchScore = (career) => {
     if (!result) return 0;
-    
     let score = 0;
     const categories = ["orientation", "interest", "personality", "aptitude"];
-    
     categories.forEach(cat => {
       const topCareers = result.individual_results[cat]?.top_careers || [];
       const index = topCareers.indexOf(career);
@@ -206,37 +234,35 @@ const Guidance = () => {
         score += (topCareers.length - index) / topCareers.length * 25;
       }
     });
-    
     return Math.round(score);
   };
 
   return (
-    <div className="min-h-screen  bg-gradient-to-br from-gray-900 to-purple-900 text-white">
-      {/* Navigation */}
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-purple-900 text-white">
       <nav className="bg-gray-800 bg-opacity-50 backdrop-blur-md p-4 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <button 
-            onClick={() => navigate("/")}
-            className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400"
+          <button
+            onClick={() => navigate("/home")}
+            className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 cursor-pointer"
           >
-            CareerPathfinder
+            CareerPath finder
           </button>
           <div className="flex space-x-4">
-          <button 
+            <button
               onClick={() => setActiveTab("assessment")}
-              className="flex items-center px-4 py-2 rounded-lg bg-purple-700 hover:bg-purple-600 transition"
+              className="flex items-center px-4 py-2 rounded-lg bg-purple-700 hover:bg-purple-600 transition cursor-pointer"
             >
-              <FiActivity className="mr-2" /> Assesment
+              <FiActivity className="mr-2" /> Assessment
             </button>
-            <button 
+            <button
               onClick={() => setActiveTab("reports")}
-              className="flex items-center px-4 py-2 rounded-lg bg-purple-700 hover:bg-purple-600 transition"
+              className="flex items-center px-4 py-2 rounded-lg bg-purple-700 hover:bg-purple-600 transition cursor-pointer"
             >
               <FiBookmark className="mr-2" /> My Reports
             </button>
-            <button 
+            <button
               onClick={() => navigate("/")}
-              className="flex items-center px-4 py-2 rounded-lg bg-red-700 hover:bg-red-600 transition"
+              className="flex items-center px-4 py-2 rounded-lg bg-red-700 hover:bg-red-600 transition cursor-pointer"
             >
               <FiLogOut className="mr-2" /> Logout
             </button>
@@ -248,23 +274,20 @@ const Guidance = () => {
         {activeTab === "reports" ? (
           <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 backdrop-blur-sm">
             <h2 className="text-3xl font-bold mb-6">📚 My Saved Reports</h2>
-            
             {savedReports.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-xl text-gray-400">You don't have any saved reports yet</p>
-                <button 
+                <button
                   onClick={() => setActiveTab("assessment")}
-                  className="mt-6 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg font-medium"
+                  className="mt-6 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg font-medium cursor-pointer"
                 >
                   Take New Assessment
                 </button>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {savedReports && (
-                  <>
-                  {savedReports.map(report => (
-                  <motion.div 
+                {savedReports.map(report => (
+                  <motion.div
                     key={report._id}
                     className="bg-gray-700 rounded-xl p-5 hover:shadow-lg transition-shadow cursor-pointer"
                     whileHover={{ y: -5 }}
@@ -287,35 +310,30 @@ const Guidance = () => {
                     </div>
                   </motion.div>
                 ))}
-                  </>
-                )}
-                
               </div>
             )}
           </div>
         ) : (
           <>
-            {/* Progress Steps */}
             <div className="flex justify-center mb-10">
               <div className="flex items-center">
                 {['assessment', 'results', 'activity', 'evaluation'].map((step, index) => (
                   <div key={step} className="flex items-center">
                     <button
                       onClick={() => setActiveTab(step)}
-                      className={`flex flex-col items-center ${activeTab === step ? 'text-white' : 'text-gray-400'}`}
+                      className={`flex flex-col items-center cursor-pointer ${activeTab === step ? 'text-white' : 'text-gray-400'}`}
                       disabled={
                         (step === 'results' && !result) ||
                         (step === 'activity' && !selectedCareer) ||
                         (step === 'evaluation' && !evaluationResult)
                       }
                     >
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${
-                        activeTab === step ? 'bg-purple-600' : 
-                        (step === 'assessment' || 
-                         (step === 'results' && result) ||
-                         (step === 'activity' && selectedCareer) ||
-                         (step === 'evaluation' && evaluationResult)) ? 'bg-gray-700' : 'bg-gray-800'
-                      }`}>
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${activeTab === step ? 'bg-purple-600' :
+                        (step === 'assessment' ||
+                          (step === 'results' && result) ||
+                          (step === 'activity' && selectedCareer) ||
+                          (step === 'evaluation' && evaluationResult)) ? 'bg-gray-700' : 'bg-gray-800'
+                        }`}>
                         {index + 1}
                       </div>
                       <span className="text-xs capitalize">{step}</span>
@@ -328,16 +346,14 @@ const Guidance = () => {
               </div>
             </div>
 
-            {/* Assessment Tab */}
             {activeTab === "assessment" && (
-              <motion.div 
+              <motion.div
                 className="bg-gray-800 bg-opacity-50 rounded-xl p-6 backdrop-blur-sm"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
               >
                 <h2 className="text-3xl font-bold mb-6 text-center">🧠 Career Assessment</h2>
 
-                {/* Grade Selection */}
                 {!Object.values(questions).flat().length && (
                   <div className="text-center">
                     <h3 className="text-xl mb-6">Select your grade level to begin</h3>
@@ -348,9 +364,8 @@ const Guidance = () => {
                           onClick={() => setLevel(grade)}
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
-                          className={`px-8 py-4 rounded-xl text-lg font-bold ${
-                            level === grade ? 'bg-gradient-to-r from-blue-600 to-purple-600' : 'bg-gray-700'
-                          }`}
+                          className={`px-8 py-4 rounded-xl text-lg font-bold cursor-pointer ${level === grade ? 'bg-gradient-to-r from-blue-600 to-purple-600' : 'bg-gray-700 '
+                            }`}
                         >
                           {grade}th Grade
                         </motion.button>
@@ -359,72 +374,137 @@ const Guidance = () => {
                     {level && (
                       <motion.button
                         onClick={handleStartQuiz}
-                        className="mt-10 px-8 py-4 bg-gradient-to-r from-green-600 to-teal-600 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transition-all"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                        className={`mt-10 px-8 py-4 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transition-all  ${isGeneratingQuestions
+                          ? 'bg-gradient-to-r from-green-700 to-teal-700 opacity-75 cursor-not-allowed'
+                          : 'bg-gradient-to-r from-green-600 to-teal-600 cursor-pointer'
+                          }`}
+                        whileHover={!isGeneratingQuestions ? { scale: 1.05 } : {}}
+                        whileTap={{}}
+                        disabled={isGeneratingQuestions}
                       >
-                        Start Assessment
+                        {isGeneratingQuestions ? (
+                          <>
+                            Generating...
+                          </>
+                        ) : (
+                          "Start Assessment"
+                        )}
                       </motion.button>
                     )}
                   </div>
                 )}
 
-                {/* Questions */}
                 {Object.values(questions).flat().length > 0 && (
                   <div className="space-y-8">
-                    {Object.keys(questions).map((category) => (
-                      questions[category].length > 0 && (
-                        <div key={category} className="bg-gray-700 rounded-lg p-6">
-                          <h3 className="text-xl font-bold mb-4 capitalize border-b border-gray-600 pb-2">
-                            {category} Questions
-                          </h3>
-                          <div className="space-y-6">
-                            {questions[category].map((q, index) => (
-                              <div key={q.id} className="bg-gray-800 rounded-lg p-4">
-                                <h4 className="font-bold text-lg mb-3">
-                                  {index + 1}. {q.question}
-                                </h4>
-                                <ul className="space-y-2">
-                                  {q.options.map((option, i) => (
-                                    <motion.li
-                                      key={i}
-                                      whileHover={{ x: 5 }}
-                                      className={`cursor-pointer p-3 rounded-lg transition-colors ${
-                                        answers[q.id] === option[0] 
-                                          ? 'bg-gradient-to-r from-blue-700 to-purple-700' 
-                                          : 'bg-gray-600 hover:bg-gray-500'
-                                      }`}
-                                      onClick={() => handleAnswerSelect(category, q.id, option)}
-                                    >
-                                      {option}
-                                    </motion.li>
-                                  ))}
-                                </ul>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )
-                    ))}
-
-                    <div className="flex justify-center">
-                      <motion.button
-                        onClick={handleSubmitQuiz}
-                        className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transition-all"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                    <div className="flex justify-between items-center mb-6">
+                      <select
+                        value={currentCategory}
+                        onChange={(e) => {
+                          setCurrentCategory(e.target.value);
+                          setCurrentQuestionIndex(0);
+                        }}
+                        className="bg-gray-700 text-white rounded-lg px-4 py-2"
                       >
-                        Submit Assessment
-                      </motion.button>
+                        {Object.keys(questions).map((category) => (
+                          <option key={category} value={category}>
+                            {category.charAt(0).toUpperCase() + category.slice(1)} Questions
+                          </option>
+                        ))}
+                      </select>
+
+                      <div className="text-gray-300">
+                        Question {currentQuestionIndex + 1} of {questions[currentCategory].length}
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-700 rounded-lg p-6">
+                      <div className="bg-gray-800 rounded-lg p-4">
+                        <h4 className="font-bold text-lg mb-3">
+                          {currentQuestionIndex + 1}. {questions[currentCategory][currentQuestionIndex].question}
+                        </h4>
+                        <ul className="space-y-2">
+                          {questions[currentCategory][currentQuestionIndex].options.map((option, i) => (
+                            <motion.li
+                              key={i}
+                              whileHover={{ x: 5 }}
+                              className={`cursor-pointer p-3 rounded-lg transition-colors ${answers[questions[currentCategory][currentQuestionIndex].id] === option[0]
+                                ? 'bg-gradient-to-r from-blue-700 to-purple-700'
+                                : 'bg-gray-600 hover:bg-gray-500'
+                                }`}
+                              onClick={() => handleAnswerSelect(
+                                currentCategory,
+                                questions[currentCategory][currentQuestionIndex].id,
+                                option
+                              )}
+                            >
+                              {option}
+                            </motion.li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div className="flex justify-between mt-6">
+                        <motion.button
+                          onClick={handlePrevQuestion}
+                          disabled={currentQuestionIndex === 0 && currentCategory === Object.keys(questions)[0]}
+                          className={`px-6 py-2 rounded-lg ${currentQuestionIndex === 0 && currentCategory === Object.keys(questions)[0]
+                            ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                            : 'bg-gray-600 hover:bg-gray-500 cursor-pointer'
+                            }`}
+                          whileHover={{ scale: currentQuestionIndex > 0 || currentCategory !== Object.keys(questions)[0] ? 1.05 : 1 }}
+                          whileTap={{ scale: currentQuestionIndex > 0 || currentCategory !== Object.keys(questions)[0] ? 0.95 : 1 }}
+                        >
+                          Previous
+                        </motion.button>
+
+                        {currentQuestionIndex === questions[currentCategory].length - 1 &&
+                          currentCategory === Object.keys(questions)[Object.keys(questions).length - 1] ? (
+                          <motion.button
+                            onClick={handleSubmitQuiz}
+                            className={`px-8 py-2 rounded-lg font-bold flex items-center justify-center ${isSubmittingAssessment
+                                ? 'bg-gradient-to-r from-purple-700 to-blue-700 opacity-75 cursor-not-allowed'
+                                : 'bg-gradient-to-r from-purple-600 to-blue-600 cursor-pointer'
+                              }`}
+                            whileHover={!isSubmittingAssessment ? { scale: 1.05 } : {}}
+                            whileTap={{}}
+                            disabled={isSubmittingAssessment}
+                          >
+                            {isSubmittingAssessment ? (
+                              <>
+                                Submitting...
+                              </>
+                            ) : (
+                              "Submit Assessment"
+                            )}
+                          </motion.button>
+                        ) : (
+                          <motion.button
+                            onClick={handleNextQuestion}
+                            className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg cursor-pointer"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            Next
+                          </motion.button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-800 rounded-full h-2 w-full">
+                      <div
+                        className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full"
+                        style={{
+                          width: `${calculateProgress()}%`
+                        }}
+                      ></div>
                     </div>
                   </div>
                 )}
               </motion.div>
             )}
 
-            {/* Results Tab */}
             {activeTab === "results" && result && (
-              <motion.div 
+              <motion.div
                 className="bg-gray-800 bg-opacity-50 rounded-xl p-6 backdrop-blur-sm"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -436,7 +516,7 @@ const Guidance = () => {
                     disabled={isSaving}
                     className="flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-teal-600 rounded-lg disabled:opacity-50"
                   >
-                    <FiSave className="mr-2" /> 
+                    <FiSave className="mr-2" />
                     {isSaving ? 'Saving...' : 'Save Report'}
                   </button>
                 </div>
@@ -445,15 +525,15 @@ const Guidance = () => {
                   <div className="bg-gray-700 rounded-xl p-6">
                     <h3 className="text-xl font-bold mb-4 text-purple-300">Personality Traits</h3>
                     <ul className="space-y-2">
-  {result.individual_results.personality?.dominant_traits && 
-    Object.keys(result.individual_results.personality.dominant_traits).map((trait, i) => (
-      <li key={i} className="flex items-center">
-        <span className="w-4 h-4 bg-purple-500 rounded-full mr-2"></span>
-        <span className="capitalize">{trait.replace(/_/g, ' ')}</span>
-      </li>
-    ))
-  }
-</ul>
+                      {result.individual_results.personality?.dominant_traits &&
+                        Object.keys(result.individual_results.personality.dominant_traits).map((trait, i) => (
+                          <li key={i} className="flex items-center">
+                            <span className="w-4 h-4 bg-purple-500 rounded-full mr-2"></span>
+                            <span className="capitalize">{trait.replace(/_/g, ' ')}</span>
+                          </li>
+                        ))
+                      }
+                    </ul>
                   </div>
 
                   <div className="bg-gray-700 rounded-xl p-6">
@@ -479,8 +559,6 @@ const Guidance = () => {
                       </div>
                     </div>
                   </div>
-
-                  
                 </div>
 
                 <h3 className="text-2xl font-bold mb-6 text-center">Top Career Matches</h3>
@@ -492,11 +570,10 @@ const Guidance = () => {
                   ])).map((career, i) => (
                     <motion.div
                       key={i}
-                      className={`bg-gradient-to-br rounded-xl p-6 cursor-pointer transition-all ${
-                        selectedCareer === career 
-                          ? 'from-purple-600 to-blue-600 scale-105 shadow-lg' 
-                          : 'from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700'
-                      }`}
+                      className={`bg-gradient-to-br rounded-xl p-6 cursor-pointer transition-all ${selectedCareer === career
+                        ? 'from-purple-600 to-blue-600 scale-105 shadow-lg'
+                        : 'from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700'
+                        }`}
                       whileHover={{ y: -5 }}
                       onClick={() => setSelectedCareer(career)}
                     >
@@ -517,20 +594,29 @@ const Guidance = () => {
                   <div className="flex justify-center mt-8">
                     <motion.button
                       onClick={handleGenerateActivity}
-                      className="px-8 py-4 bg-gradient-to-r from-yellow-600 to-orange-600 rounded-xl text-lg font-bold shadow-lg hover:shadow-xl transition-all"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      className={`px-8 py-4 rounded-xl text-lg font-bold shadow-lg transition-all flex items-center justify-center ${isGeneratingActivities
+                        ? 'bg-gradient-to-r from-yellow-700 to-orange-700 opacity-75 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-yellow-600 to-orange-600 cursor-pointer hover:shadow-xl'
+                        }`}
+                      whileHover={!isGeneratingActivities ? { scale: 1.05 } : {}}
+                      whileTap={{}}
+                      disabled={isGeneratingActivities}
                     >
-                      Explore {selectedCareer} Activities
+                      {isGeneratingActivities ? (
+                        <>
+                          Generating...
+                        </>
+                      ) : (
+                        `Explore ${selectedCareer} Activities`
+                      )}
                     </motion.button>
                   </div>
                 )}
               </motion.div>
             )}
 
-            {/* Activity Tab */}
             {activeTab === "activity" && activities.length > 0 && (
-              <motion.div 
+              <motion.div
                 className="bg-gray-800 bg-opacity-50 rounded-xl p-6 backdrop-blur-sm"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -549,7 +635,7 @@ const Guidance = () => {
                       disabled={isSaving}
                       className="flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-teal-600 rounded-lg disabled:opacity-50"
                     >
-                      <FiSave className="mr-2" /> 
+                      <FiSave className="mr-2" />
                       {isSaving ? 'Saving...' : 'Save Progress'}
                     </button>
                   </div>
@@ -575,20 +661,29 @@ const Guidance = () => {
                   <div className="flex justify-end">
                     <motion.button
                       onClick={handleSubmitActivityResponse}
-                      className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg font-bold"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      className={`px-6 py-3 rounded-lg font-bold flex items-center justify-center ${isSubmittingResponse
+                        ? 'bg-gradient-to-r from-purple-700 to-blue-700 opacity-75 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-purple-600 to-blue-600 cursor-pointer'
+                        }`}
+                      whileHover={!isSubmittingResponse ? { scale: 1.05 } : {}}
+                      whileTap={{}}
+                      disabled={isSubmittingResponse}
                     >
-                      Submit Response
+                      {isSubmittingResponse ? (
+                        <>
+                          Submitting...
+                        </>
+                      ) : (
+                        "Submit Response"
+                      )}
                     </motion.button>
                   </div>
                 </div>
               </motion.div>
             )}
 
-            {/* Evaluation Tab */}
             {activeTab === "evaluation" && evaluationResult && (
-              <motion.div 
+              <motion.div
                 className="bg-gray-800 bg-opacity-50 rounded-xl p-6 backdrop-blur-sm"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -600,7 +695,7 @@ const Guidance = () => {
                     disabled={isSaving}
                     className="flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-teal-600 rounded-lg disabled:opacity-50"
                   >
-                    <FiSave className="mr-2" /> 
+                    <FiSave className="mr-2" />
                     {isSaving ? 'Saving...' : 'Save Report'}
                   </button>
                 </div>
@@ -610,8 +705,8 @@ const Guidance = () => {
                     <h3 className="text-xl font-bold mb-4">Career Fit Analysis</h3>
                     <p className="mb-4">{selectedCareer} seems to be a {evaluationResult.overall.score >= 70 ? 'strong' : 'moderate'} fit based on your response.</p>
                     <div className="w-full bg-gray-800 rounded-full h-4 mb-2">
-                      <div 
-                        className="bg-yellow-500 h-4 rounded-full" 
+                      <div
+                        className="bg-yellow-500 h-4 rounded-full"
                         style={{ width: `${evaluationResult.overall.score}%` }}
                       ></div>
                     </div>
@@ -621,22 +716,7 @@ const Guidance = () => {
                       <span>100%</span>
                     </div>
                   </div>
-
-                  {/* <div className="bg-gradient-to-br from-blue-700 to-teal-700 rounded-xl p-6">
-                    <h3 className="text-xl font-bold mb-4">Strengths Identified</h3>
-                    <ul className="space-y-2">
-                      {evaluationResult.skill_development.focus_areas.map((strength, i) => (
-                        <li key={i} className="flex items-start">
-                          <FiCheck className="text-green-400 mt-1 mr-2 flex-shrink-0" />
-                          {strength}
-                        </li>
-                      ))}
-                    </ul>
-                  </div> */}
-
                 </div>
-
-                
 
                 <div className="flex justify-center mt-8 space-x-6">
                   <button
