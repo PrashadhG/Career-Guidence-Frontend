@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import api from "../utils/api";
 import { v4 as uuidv4 } from "uuid";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { FiSave, FiBookmark, FiChevronRight, FiActivity, FiLogOut} from "react-icons/fi"; 
+import { FiSave, FiBookmark, FiChevronRight, FiActivity, FiLogOut } from "react-icons/fi";
 import useDocumentTitle from "../components/title";
 
 const Guidance = () => {
@@ -42,14 +43,16 @@ const Guidance = () => {
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/reports/my", {
-          headers: { "x-auth-token": token }
-        });
+        const res = await api.get("/reports/my");
         setSavedReports(res.data);
       } catch (error) {
         console.error("Error fetching reports:", error);
+        if (error.response?.status === 401) {
+          console.log("Please login to view reports");
+        }
       }
     };
+  
     fetchReports();
   }, []);
 
@@ -148,7 +151,7 @@ const Guidance = () => {
     } catch (error) {
       console.error("Error analyzing assessment:", error);
       alert("Failed to submit assessment. Please try again.");
-    }finally{
+    } finally {
       setIsSubmittingAssessment(false);
     }
   };
@@ -196,9 +199,11 @@ const Guidance = () => {
 
   const saveReport = async () => {
     if (!result) return;
+    
     try {
       setIsSaving(true);
-      await axios.post("http://localhost:5000/api/reports", {
+      
+      await api.post("/reports", {
         assessmentId,
         level,
         answers,
@@ -206,17 +211,14 @@ const Guidance = () => {
         selectedCareer,
         activities,
         evaluationResults: evaluationResult ? [evaluationResult] : []
-      }, {
-        headers: { "x-auth-token": token }
       });
-      const res = await axios.get("http://localhost:5000/api/reports/my", {
-        headers: { "x-auth-token": token }
-      });
+      const res = await api.get("/reports/my");
       setSavedReports(res.data);
+      
     } catch (error) {
       console.error("Error saving report:", error);
       if (error.response?.status === 401) {
-        console.log("Please login again");
+        console.log("Session expired - you'll be redirected to login");
       }
     } finally {
       setIsSaving(false);
@@ -235,6 +237,11 @@ const Guidance = () => {
       }
     });
     return Math.round(score);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/');
   };
 
   return (
@@ -261,7 +268,7 @@ const Guidance = () => {
               <FiBookmark className="mr-2" /> My Reports
             </button>
             <button
-              onClick={() => navigate("/")}
+              onClick={handleLogout}
               className="flex items-center px-4 py-2 rounded-lg bg-red-700 hover:bg-red-600 transition cursor-pointer"
             >
               <FiLogOut className="mr-2" /> Logout
@@ -462,8 +469,8 @@ const Guidance = () => {
                           <motion.button
                             onClick={handleSubmitQuiz}
                             className={`px-8 py-2 rounded-lg font-bold flex items-center justify-center ${isSubmittingAssessment
-                                ? 'bg-gradient-to-r from-purple-700 to-blue-700 opacity-75 cursor-not-allowed'
-                                : 'bg-gradient-to-r from-purple-600 to-blue-600 cursor-pointer'
+                              ? 'bg-gradient-to-r from-purple-700 to-blue-700 opacity-75 cursor-not-allowed'
+                              : 'bg-gradient-to-r from-purple-600 to-blue-600 cursor-pointer'
                               }`}
                             whileHover={!isSubmittingAssessment ? { scale: 1.05 } : {}}
                             whileTap={{}}

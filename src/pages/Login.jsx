@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { motion } from "framer-motion";
-import { Mail, Lock, Loader2 } from "lucide-react"; // Added Loader2
+import { Mail, Lock, Loader2 } from "lucide-react";
+import api from "../utils/api";
 import useDocumentTitle from "../components/title";
 
 const Login = () => {
@@ -29,10 +29,10 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setErrors({ email: "", password: "", message: "" }); // Reset errors
-    setIsLoading(true); // Start loading
+    setErrors({ email: "", password: "", message: "" });
+    setIsLoading(true);
 
-    // Basic validation
+    // Validation remains the same
     if (!email) {
       setErrors(prev => ({ ...prev, email: "Email is required" }));
       setIsLoading(false);
@@ -50,15 +50,10 @@ const Login = () => {
     }
 
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", {
-        email,
-        password
-      });
+      const res = await api.post("/auth/login", { email, password });
 
-      // Save token to localStorage
       localStorage.setItem("token", res.data.token);
 
-      // Handle remember me functionality
       if (rememberMe) {
         localStorage.setItem("rememberedEmail", email);
       } else {
@@ -67,16 +62,18 @@ const Login = () => {
 
       navigate("/guidance");
     } catch (err) {
-      if (err.response && err.response.status === 400) {
+      if (err.response?.status === 401 || err.response?.status === 400) {
         setErrors(prev => ({ ...prev, message: "Invalid email or password" }));
       } else {
-        setErrors(prev => ({ ...prev, message: "An error occurred. Please try again." }));
+        setErrors(prev => ({
+          ...prev,
+          message: "An error occurred. Please try again."
+        }));
       }
     } finally {
-      setIsLoading(false); // Stop loading regardless of success/error
+      setIsLoading(false);
     }
   };
-
   return (
     <motion.div
       initial={{ y: 50, opacity: 0 }}

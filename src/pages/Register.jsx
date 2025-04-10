@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Mail, Lock, User, Eye, EyeOff, Loader2 } from 'lucide-react'; // Added Loader2
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import useDocumentTitle from "../components/title";
 
 function Register() {
@@ -81,25 +80,42 @@ function Register() {
   const handleRegister = async (e) => {
     e.preventDefault();
     if (!validate()) return;
-
+  
     setIsLoading(true);
-
+  
     try {
-      await axios.post("http://localhost:5000/api/auth/register", {
+      await api.post("/auth/register", {
         name: formData.name,
         email: formData.email,
         password: formData.password,
       });
-      navigate("/");
+  
+      const loginRes = await api.post("/auth/login", {
+        email: formData.email,
+        password: formData.password
+      });
+      
+      localStorage.setItem("token", loginRes.data.token);
+      navigate("/guidance");
+  
     } catch (err) {
-      if (err.response && err.response.status === 400) {
+      if (err.response?.status === 400) {
         if (err.response.data.msg === "User already exists") {
-          setErrors(prev => ({ ...prev, email: "Email is already registered !!!" }));
+          setErrors(prev => ({ 
+            ...prev, 
+            email: "Email is already registered !!!" 
+          }));
         } else {
-          setErrors(prev => ({ ...prev, email: err.response.data.msg || "Registration failed !!!" }));
+          setErrors(prev => ({ 
+            ...prev, 
+            email: err.response.data.msg || "Registration failed !!!" 
+          }));
         }
       } else {
-        setErrors(prev => ({ ...prev, email: "An unexpected error occurred. Please try again." }));
+        setErrors(prev => ({ 
+          ...prev, 
+          email: "An unexpected error occurred. Please try again." 
+        }));
       }
     } finally {
       setIsLoading(false);
