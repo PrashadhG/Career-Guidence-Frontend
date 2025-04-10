@@ -298,6 +298,7 @@ const Guidance = () => {
               handleStartAssessment={handleStartAssessment}
               navigateToReport={navigateToReport}
               setActiveTab={setActiveTab}
+              setSidebarOpen={setSidebarOpen}
             />
           ) : activeTab === "reports" ? (
             <Reports savedReports={savedReports} setActiveTab={setActiveTab} navigate={navigate} />

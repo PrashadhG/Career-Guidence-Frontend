@@ -15,15 +15,21 @@ const Dashboard = ({
   loading,
   error,
   handleStartAssessment,
-  navigateToReport
+  navigateToReport,
+  setSidebarOpen,
+  setActiveTab
 }) => {
   useDocumentTitle('Dashboard');
   const [showAllReports, setShowAllReports] = useState(false);
 
-  // If showing all reports, render the reports view
+  const handleStartWithSidebarClose = () => {
+    setSidebarOpen(false);
+    handleStartAssessment();
+  };
+
   if (showAllReports) {
     return (
-      <div className="h-full ">
+      <div className="h-full">
         <div className="mb-6">
           <button
             onClick={() => setShowAllReports(false)}
@@ -58,10 +64,11 @@ const Dashboard = ({
                   <h3 className="text-lg font-medium text-white line-clamp-1">
                     {report.selectedCareer || 'Career Assessment'}
                   </h3>
-                  <span className={`px-2 py-1 rounded-full text-xs ${report.evaluationResults?.length
+                  <span className={`px-2 py-1 rounded-full text-xs ${
+                    report.evaluationResults?.length
                       ? 'bg-green-900/50 text-green-300'
                       : 'bg-yellow-900/50 text-yellow-300'
-                    }`}>
+                  }`}>
                     {report.evaluationResults?.length ? 'Completed' : 'In Progress'}
                   </span>
                 </div>
@@ -98,7 +105,7 @@ const Dashboard = ({
             <h3 className="text-xl font-medium text-white mb-2">No Reports Available</h3>
             <p className="text-gray-300 mb-6">Take an assessment to get started with your career guidance journey.</p>
             <button
-              onClick={handleStartAssessment}
+              onClick={handleStartWithSidebarClose}
               className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-medium"
             >
               Start Assessment
@@ -109,10 +116,8 @@ const Dashboard = ({
     );
   }
 
-  // Default dashboard view
   return (
     <div className="h-full overflow-y-auto">
-      {/* Welcome Banner */}
       <motion.div
         className="w-full h-48 rounded-2xl bg-gradient-to-r from-purple-800 to-blue-800 p-8 flex flex-col justify-center relative overflow-hidden mb-8"
         initial={{ opacity: 0, y: -20 }}
@@ -124,7 +129,7 @@ const Dashboard = ({
           <h1 className="text-3xl font-bold text-white mb-2">Welcome to CareerGuide</h1>
           <p className="text-gray-200 mb-6">Discover your perfect career path with our assessment</p>
           <motion.button
-            onClick={handleStartAssessment}
+            onClick={handleStartWithSidebarClose}
             className="bg-white text-purple-800 px-6 py-3 rounded-lg font-medium flex items-center space-x-2 hover:bg-gray-100 transition-colors"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -135,7 +140,6 @@ const Dashboard = ({
         </div>
       </motion.div>
 
-      {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <motion.div
           className="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm border border-gray-700"
@@ -195,7 +199,6 @@ const Dashboard = ({
         </motion.div>
       </div>
 
-      {/* Recent Reports */}
       <div className="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm border border-gray-700">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-semibold">Recent Career Reports</h2>
@@ -232,10 +235,11 @@ const Dashboard = ({
                   <h3 className="text-lg font-medium text-white line-clamp-1">
                     {report.selectedCareer || 'Career Assessment'}
                   </h3>
-                  <span className={`px-2 py-1 rounded-full text-xs ${report.evaluationResults?.length
+                  <span className={`px-2 py-1 rounded-full text-xs ${
+                    report.evaluationResults?.length
                       ? 'bg-green-900/50 text-green-300'
                       : 'bg-yellow-900/50 text-yellow-300'
-                    }`}>
+                  }`}>
                     {report.evaluationResults?.length ? 'Completed' : 'In Progress'}
                   </span>
                 </div>
@@ -272,7 +276,7 @@ const Dashboard = ({
             <h3 className="text-xl font-medium text-white mb-2">No Reports Available</h3>
             <p className="text-gray-300 mb-6">Take an assessment to get started with your career guidance journey.</p>
             <button
-              onClick={handleStartAssessment}
+              onClick={handleStartWithSidebarClose}
               className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-medium"
             >
               Start Assessment
