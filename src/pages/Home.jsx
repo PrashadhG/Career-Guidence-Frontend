@@ -68,7 +68,7 @@ const Home = () => {
               </button>
               <div className="flex space-x-4 ml-8">
                 <button
-                  onClick={() => navigate("/")}
+                  onClick={() => navigate("/login")}
                   className={`px-4 py-2 rounded-lg transition ${isScrolled ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100'}`}
                 >
                   Login
@@ -116,7 +116,7 @@ const Home = () => {
               </button>
               <div className="flex space-x-4 pt-2">
                 <button
-                  onClick={() => { navigate("/"); setIsMenuOpen(false); }}
+                  onClick={() => { navigate("/login"); setIsMenuOpen(false); }}
                   className={`px-4 py-2 rounded-lg transition ${isScrolled ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100'}`}
                 >
                   Login
