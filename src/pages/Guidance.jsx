@@ -87,7 +87,7 @@ const Guidance = () => {
     const requestData = {
       level,
       categories: ["personality", "orientation", "interest", "aptitude"],
-      questions_per_category: 10
+      questions_per_category: 20
     };
     try {
       const res = await axios.post("http://127.0.0.1:8000/generate_psychometric_assessment", requestData);
@@ -108,10 +108,19 @@ const Guidance = () => {
   };
 
   const handleAnswerSelect = (category, questionId, selectedOption) => {
-    setAnswers(prev => ({
-      ...prev,
-      [questionId]: selectedOption[0]
-    }));
+    setAnswers(prev => {
+      // If selectedOption is null (deselecting), remove the answer
+      if (selectedOption === null) {
+        const newAnswers = { ...prev };
+        delete newAnswers[questionId];
+        return newAnswers;
+      }
+      // Otherwise, update with the new selection
+      return {
+        ...prev,
+        [questionId]: selectedOption[0]
+      };
+    });
   };
 
   const handleNextQuestion = () => {
