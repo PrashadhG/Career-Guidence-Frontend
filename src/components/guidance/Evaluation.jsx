@@ -23,7 +23,7 @@ const Evaluation = ({
         <button
           onClick={saveReport}
           disabled={isSaving}
-          className="flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-teal-600 rounded-lg disabled:opacity-50"
+          className="flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-teal-600 rounded-lg disabled:opacity-50 cursor-pointer"
         >
           <FiSave className="mr-2" />
           {isSaving ? 'Saving...' : 'Save Report'}

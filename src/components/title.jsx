@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 
 const useDocumentTitle = (title) => {
   useEffect(() => {
-    document.title = `${title} | Career PathFinder`;
+    document.title = `${title} | CareerPulse Ai`;
   }, [title]);
 };
 

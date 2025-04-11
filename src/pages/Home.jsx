@@ -11,7 +11,7 @@ const Home = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
-    document.title = "Career Pathfinder";
+    document.title = "CareerPulse Ai";
   }, []);
 
   const scrollToSection = (id) => {
@@ -27,7 +27,7 @@ const Home = () => {
 
   return (
     <div className="bg-gray-900 text-white scroll-snap-y-mandatory">
-      {/* Header - Always Dark Theme */}
+      {/* Header */}
       <header className="fixed w-full z-50 bg-gray-900/80 backdrop-blur-sm border-b border-gray-800">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
@@ -36,7 +36,7 @@ const Home = () => {
               <img
                 src={logo}
                 alt="CareerPulse AI Logo"
-                className="h-10 w-10 mr-3"  // Adjust size and margin as needed
+                className="h-10 w-10 mr-3"
               />
               <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
                 CareerPulse AI
@@ -237,7 +237,7 @@ const Home = () => {
       {/* Steps Section */}
       <section
         id="steps"
-        className="py-20 bg-gray-900 h-screen snap-start flex items-center"
+        className="py-20 bg-gray-900 min-h-screen snap-start flex items-center"
       >
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
@@ -258,7 +258,7 @@ const Home = () => {
               <div className="text-purple-400 mb-4 text-2xl font-bold">01</div>
               <h3 className="text-2xl font-semibold mb-4">Take the Assessment</h3>
               <p className="text-gray-300 mb-6">
-                Complete our 15-minute AI-powered assessment that evaluates your skills, interests, and personality traits.
+                Complete our AI-powered assessment that evaluates your skills, interests, and personality traits.
               </p>
             </motion.div>
 
@@ -292,15 +292,15 @@ const Home = () => {
       {/* About Section */}
       <section
         id="about"
-        className="py-20 bg-gray-800/30 h-screen snap-start flex items-center"
+        className="py-20 bg-gray-800/30 min-h-screen snap-start flex items-center justify-center"
       >
-        <div className="container mx-auto px-6">
+        <div className="container mx-auto px-6 w-full">
           <div className="flex flex-col md:flex-row items-center gap-12">
             <div className="md:w-1/2">
               <img
                 src={AboutImage}
                 alt="About CareerPath"
-                className="rounded-xl shadow-2xl"
+                className="rounded-xl shadow-2xl w-full"
               />
             </div>
             <div className="md:w-1/2">
@@ -355,9 +355,9 @@ const Home = () => {
       {/* Contact Section */}
       <section
         id="contact"
-        className="py-20 bg-gray-900 h-screen snap-start flex items-center"
+        className="py-20 bg-gray-900 min-h-screen snap-start flex items-center justify-center"
       >
-        <div className="container mx-auto px-6">
+        <div className="container mx-auto px-6 w-full">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
               Contact Us
@@ -367,9 +367,9 @@ const Home = () => {
             </p>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-12">
-            <div className="md:w-1/2">
-              <form className="space-y-6">
+          <div className="flex flex-col md:flex-row gap-12 items-stretch">
+            <div className="md:w-1/2 flex flex-col">
+              <form className="space-y-6 flex-grow">
                 <div>
                   <label htmlFor="name" className="block text-gray-300 mb-2">Name</label>
                   <input
@@ -405,8 +405,8 @@ const Home = () => {
                 </button>
               </form>
             </div>
-            <div className="md:w-1/2">
-              <div className="bg-gray-800/50 p-8 rounded-xl border border-gray-700 h-full">
+            <div className="md:w-1/2 flex flex-col">
+              <div className="bg-gray-800/50 p-8 rounded-xl border border-gray-700 flex-grow">
                 <h3 className="text-2xl font-semibold mb-6">Get in Touch</h3>
                 <div className="space-y-6">
                   <div className="flex items-start">
@@ -463,7 +463,7 @@ const Home = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 border-t border-gray-800 py-12">
+      <footer className="bg-gray-900 border-t border-gray-800 py-12 mt-auto">
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between">
             <div className="mb-8 md:mb-0">
@@ -514,7 +514,7 @@ const Home = () => {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-500">
-            <p>© {new Date().getFullYear()} CareerPath. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} CareerPulse AI. All rights reserved.</p>
           </div>
         </div>
       </footer>
