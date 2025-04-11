@@ -11,12 +11,6 @@ const Evaluation = ({
   navigate
 }) => {
   useDocumentTitle("Activity Evaluation");
-
-  const handleSaveAndExit = async () => {
-    await saveReport();
-    navigate("/guidance");
-  };
-
   return (
     <motion.div
       className="bg-gray-800 bg-opacity-50 rounded-xl p-6 backdrop-blur-sm"
@@ -25,24 +19,14 @@ const Evaluation = ({
     >
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-3xl font-bold">📊 Activity Evaluation</h2>
-        <div className="flex space-x-4">
-          <button
-            onClick={saveReport}
-            disabled={isSaving}
-            className="flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-teal-600 rounded-lg disabled:opacity-50"
-          >
-            <FiSave className="mr-2" />
-            {isSaving ? 'Saving...' : 'Save'}
-          </button>
-          <button
-            onClick={handleSaveAndExit}
-            disabled={isSaving}
-            className="flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg disabled:opacity-50"
-          >
-            <FiSave className="mr-2" />
-            {isSaving ? 'Saving...' : 'Save & Exit'}
-          </button>
-        </div>
+        <button
+          onClick={saveReport}
+          disabled={isSaving}
+          className="flex items-center px-4 py-2 bg-gradient-to-r from-green-600 to-teal-600 rounded-lg disabled:opacity-50"
+        >
+          <FiSave className="mr-2" />
+          {isSaving ? 'Saving...' : 'Save Report'}
+        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
@@ -61,6 +45,21 @@ const Evaluation = ({
             <span>100%</span>
           </div>
         </div>
+      </div>
+
+      <div className="flex justify-center mt-8 space-x-6">
+        <button
+          onClick={() => setActiveTab("activity")}
+          className="px-6 py-3 bg-gray-700 rounded-lg"
+        >
+          Back to Activity
+        </button>
+        <button
+          onClick={() => navigate("/guidance")}
+          className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg font-bold"
+        >
+          Take Another Assessment
+        </button>
       </div>
     </motion.div>
   );
