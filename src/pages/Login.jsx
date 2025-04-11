@@ -9,7 +9,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // Added loading state
+  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({
     email: "",
     password: "",
@@ -32,7 +32,7 @@ const Login = () => {
     setErrors({ email: "", password: "", message: "" });
     setIsLoading(true);
 
-    // Validation remains the same
+    // Email Validation
     if (!email) {
       setErrors(prev => ({ ...prev, email: "Email is required" }));
       setIsLoading(false);
@@ -83,7 +83,7 @@ const Login = () => {
     >
       <div className="bg-[#1f2937] rounded-xl shadow-lg p-8 w-full max-w-md border border-gray-700">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white">Career Path</h1>
+          <h1 className="text-3xl font-bold text-white">CareerPulse AI</h1>
           <p className="text-gray-300 mt-2">Shape your professional journey</p>
         </div>
 

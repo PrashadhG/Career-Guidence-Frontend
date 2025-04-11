@@ -137,7 +137,7 @@ function Register() {
     <div className="min-h-screen flex items-center justify-center bg-[#111827] p-2">
       <div className="max-w-md w-full bg-[#1f2937] rounded-lg shadow-xl overflow-hidden p-8 border border-gray-700">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white">Career Path</h1>
+          <h1 className="text-3xl font-bold text-white">CareerPulse AI</h1>
           <p className="text-gray-300 mt-2">Shape your professional journey</p>
         </div>
 

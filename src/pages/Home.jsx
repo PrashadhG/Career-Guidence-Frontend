@@ -4,23 +4,15 @@ import { motion } from "framer-motion";
 import { Menu, X, Github, Twitter, Linkedin, Mail, Activity } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import AboutImage from "../assets/about.png";
+import logo from "../assets/logoColor.png";
+
 const Home = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
 
   useEffect(() => {
-    document.title = "Career Pathfinder"; 
+    document.title = "Career Pathfinder";
   }, []);
-  
 
   const scrollToSection = (id) => {
     const element = document.getElementById(id);
@@ -35,41 +27,46 @@ const Home = () => {
 
   return (
     <div className="bg-gray-900 text-white scroll-snap-y-mandatory">
-      {/* Header */}
-      <header className={`fixed w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-gray-900/80 backdrop-blur-sm border-b border-gray-800' : 'bg-white/80 backdrop-blur-sm border-b border-gray-200'}`}>
+      {/* Header - Always Dark Theme */}
+      <header className="fixed w-full z-50 bg-gray-900/80 backdrop-blur-sm border-b border-gray-800">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             {/* Logo */}
             <div className="flex items-center">
-              <span className={`text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r ${isScrolled ? 'from-blue-400 to-purple-600' : 'from-blue-500 to-purple-600'}`}>
-                Career Pathfinder
+              <img
+                src={logo}
+                alt="CareerPulse AI Logo"
+                className="h-10 w-10 mr-3"  // Adjust size and margin as needed
+              />
+              <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
+                CareerPulse AI
               </span>
             </div>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
-              <button 
+              <button
                 onClick={() => scrollToSection('steps')}
-                className={`transition ${isScrolled ? 'text-gray-300 hover:text-purple-400' : 'text-gray-700 hover:text-purple-600'}`}
+                className="text-gray-300 hover:text-purple-400 transition"
               >
                 Steps
               </button>
-              <button 
+              <button
                 onClick={() => scrollToSection('about')}
-                className={`transition ${isScrolled ? 'text-gray-300 hover:text-purple-400' : 'text-gray-700 hover:text-purple-600'}`}
+                className="text-gray-300 hover:text-purple-400 transition"
               >
                 About
               </button>
-              <button 
+              <button
                 onClick={() => scrollToSection('contact')}
-                className={`transition ${isScrolled ? 'text-gray-300 hover:text-purple-400' : 'text-gray-700 hover:text-purple-600'}`}
+                className="text-gray-300 hover:text-purple-400 transition"
               >
                 Contact
               </button>
               <div className="flex space-x-4 ml-8">
                 <button
                   onClick={() => navigate("/login")}
-                  className={`px-4 py-2 rounded-lg transition ${isScrolled ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100'}`}
+                  className="px-4 py-2 rounded-lg text-gray-300 hover:bg-gray-800 transition"
                 >
                   Login
                 </button>
@@ -84,9 +81,9 @@ const Home = () => {
 
             {/* Mobile menu button */}
             <div className="md:hidden">
-              <button 
+              <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className={isScrolled ? 'text-white' : 'text-gray-700'}
+                className="text-white"
               >
                 {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
@@ -95,29 +92,29 @@ const Home = () => {
 
           {/* Mobile Navigation */}
           {isMenuOpen && (
-            <div className={`md:hidden mt-4 pb-4 space-y-4 rounded-lg p-4 ${isScrolled ? 'bg-gray-800/90' : 'bg-white'} shadow-lg`}>
-              <button 
+            <div className="md:hidden mt-4 pb-4 space-y-4 rounded-lg p-4 bg-gray-800/90 shadow-lg">
+              <button
                 onClick={() => scrollToSection('steps')}
-                className={`block transition ${isScrolled ? 'text-gray-300 hover:text-purple-400' : 'text-gray-700 hover:text-purple-600'}`}
+                className="block text-gray-300 hover:text-purple-400 transition"
               >
                 Steps
               </button>
-              <button 
+              <button
                 onClick={() => scrollToSection('about')}
-                className={`block transition ${isScrolled ? 'text-gray-300 hover:text-purple-400' : 'text-gray-700 hover:text-purple-600'}`}
+                className="block text-gray-300 hover:text-purple-400 transition"
               >
                 About
               </button>
-              <button 
+              <button
                 onClick={() => scrollToSection('contact')}
-                className={`block transition ${isScrolled ? 'text-gray-300 hover:text-purple-400' : 'text-gray-700 hover:text-purple-600'}`}
+                className="block text-gray-300 hover:text-purple-400 transition"
               >
                 Contact
               </button>
               <div className="flex space-x-4 pt-2">
                 <button
                   onClick={() => { navigate("/login"); setIsMenuOpen(false); }}
-                  className={`px-4 py-2 rounded-lg transition ${isScrolled ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100'}`}
+                  className="px-4 py-2 rounded-lg text-gray-300 hover:bg-gray-800 transition"
                 >
                   Login
                 </button>
@@ -134,8 +131,8 @@ const Home = () => {
       </header>
 
       {/* Hero Section */}
-      <section 
-        id="home" 
+      <section
+        id="home"
         className="relative w-full h-screen flex items-center justify-center text-white overflow-hidden pt-16 snap-start"
       >
         <video
@@ -174,13 +171,13 @@ const Home = () => {
           ))}
         </div>
 
-        <motion.div 
+        <motion.div
           className="relative z-10 text-center px-6 max-w-4xl"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
-          <motion.h1 
+          <motion.h1
             className="text-5xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600"
             animate={{
               textShadow: ["0 0 8px rgba(96, 165, 250, 0.5)", "0 0 16px rgba(168, 85, 247, 0.5)", "0 0 8px rgba(96, 165, 250, 0.5)"]
@@ -193,8 +190,8 @@ const Home = () => {
           >
             Discover Your Dream Career
           </motion.h1>
-          
-          <motion.p 
+
+          <motion.p
             className="text-xl md:text-2xl mt-4 mb-8 max-w-2xl mx-auto leading-relaxed"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -202,7 +199,7 @@ const Home = () => {
           >
             Take our <span className="font-semibold text-purple-300">AI-powered assessment</span> and unlock personalized career recommendations tailored to your unique strengths and interests.
           </motion.p>
-          
+
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -238,8 +235,8 @@ const Home = () => {
       </section>
 
       {/* Steps Section */}
-      <section 
-        id="steps" 
+      <section
+        id="steps"
         className="py-20 bg-gray-900 h-screen snap-start flex items-center"
       >
         <div className="container mx-auto px-6">
@@ -293,16 +290,16 @@ const Home = () => {
       </section>
 
       {/* About Section */}
-      <section 
-        id="about" 
+      <section
+        id="about"
         className="py-20 bg-gray-800/30 h-screen snap-start flex items-center"
       >
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center gap-12">
             <div className="md:w-1/2">
-              <img 
-                src={AboutImage} 
-                alt="About CareerPath" 
+              <img
+                src={AboutImage}
+                alt="About CareerPath"
                 className="rounded-xl shadow-2xl"
               />
             </div>
@@ -311,7 +308,7 @@ const Home = () => {
                 About Our Platform
               </h2>
               <p className="text-gray-300 mb-6 text-lg">
-                CareerPath is an innovative career guidance platform that leverages artificial intelligence to help individuals discover their ideal career paths.
+                CareerPulse AI is an innovative career guidance platform that leverages artificial intelligence to help individuals discover their ideal career paths.
               </p>
               <p className="text-gray-300 mb-6">
                 Our mission is to bridge the gap between education and employment by providing personalized, data-driven career recommendations that align with your unique strengths and aspirations.
@@ -320,24 +317,34 @@ const Home = () => {
                 <div className="flex items-center">
                   <div className="mr-4 text-purple-400">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                   </div>
-                  <span className="text-gray-300">AI-Powered</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="mr-4 text-purple-400">
-                    <Activity size={24} />
-                  </div>
-                  <span className="text-gray-300">Activity-Based</span>
+                  <span className="text-gray-300">Psychometric Test</span>
                 </div>
                 <div className="flex items-center">
                   <div className="mr-4 text-purple-400">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
                   <span className="text-gray-300">Detailed Report</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="mr-4 text-purple-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                  </div>
+                  <span className="text-gray-300">Multiple Assessments</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="mr-4 text-purple-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                  </div>
+                  <span className="text-gray-300">AI-Powered</span>
                 </div>
               </div>
             </div>
@@ -346,8 +353,8 @@ const Home = () => {
       </section>
 
       {/* Contact Section */}
-      <section 
-        id="contact" 
+      <section
+        id="contact"
         className="py-20 bg-gray-900 h-screen snap-start flex items-center"
       >
         <div className="container mx-auto px-6">
@@ -365,32 +372,32 @@ const Home = () => {
               <form className="space-y-6">
                 <div>
                   <label htmlFor="name" className="block text-gray-300 mb-2">Name</label>
-                  <input 
-                    type="text" 
-                    id="name" 
+                  <input
+                    type="text"
+                    id="name"
                     className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                     placeholder="Your name"
                   />
                 </div>
                 <div>
                   <label htmlFor="email" className="block text-gray-300 mb-2">Email</label>
-                  <input 
-                    type="email" 
-                    id="email" 
+                  <input
+                    type="email"
+                    id="email"
                     className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                     placeholder="your@email.com"
                   />
                 </div>
                 <div>
                   <label htmlFor="message" className="block text-gray-300 mb-2">Message</label>
-                  <textarea 
-                    id="message" 
+                  <textarea
+                    id="message"
                     rows="5"
                     className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-600"
                     placeholder="Your message"
                   ></textarea>
                 </div>
-                <button 
+                <button
                   type="submit"
                   className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg hover:opacity-90 transition w-full md:w-auto"
                 >
@@ -408,7 +415,7 @@ const Home = () => {
                     </div>
                     <div>
                       <h4 className="text-lg font-medium mb-1">Email</h4>
-                      <p className="text-gray-400">support@careerpath.com</p>
+                      <p className="text-gray-400">support@careerpulseai.com</p>
                     </div>
                   </div>
                   <div className="flex items-start">
@@ -461,7 +468,7 @@ const Home = () => {
           <div className="flex flex-col md:flex-row justify-between">
             <div className="mb-8 md:mb-0">
               <h3 className="text-2xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
-                CareerPath
+                CareerPulse AI
               </h3>
               <p className="text-gray-400 max-w-xs">
                 Helping you find your ideal career through AI-powered assessments.
