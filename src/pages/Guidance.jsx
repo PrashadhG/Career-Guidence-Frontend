@@ -15,7 +15,12 @@ import Sidebar from "../components/SideBar";
 const Guidance = () => {
   const token = localStorage.getItem("token");
   const [level, setLevel] = useState("");
-  const [questions, setQuestions] = useState({ personality: [], orientation: [], interest: [] });
+  const [questions, setQuestions] = useState({
+    personality: [],
+    orientation: [],
+    interest: [],
+    aptitude: []
+  });
   const [answers, setAnswers] = useState({});
   const [result, setResult] = useState(null);
   const [selectedCareer, setSelectedCareer] = useState(null);
@@ -87,7 +92,7 @@ const Guidance = () => {
     const requestData = {
       level,
       categories: ["personality", "orientation", "interest", "aptitude"],
-      questions_per_category: 20
+      questions_per_category: 10
     };
     try {
       const res = await axios.post("http://127.0.0.1:8000/generate_psychometric_assessment", requestData);
@@ -109,13 +114,11 @@ const Guidance = () => {
 
   const handleAnswerSelect = (category, questionId, selectedOption) => {
     setAnswers(prev => {
-      // If selectedOption is null (deselecting), remove the answer
       if (selectedOption === null) {
         const newAnswers = { ...prev };
         delete newAnswers[questionId];
         return newAnswers;
       }
-      // Otherwise, update with the new selection
       return {
         ...prev,
         [questionId]: selectedOption[0]

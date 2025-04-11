@@ -34,16 +34,22 @@ const Results = ({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <div className="bg-gray-700 rounded-xl p-6">
           <h3 className="text-xl font-bold mb-4 text-purple-300">Personality Traits</h3>
-          <ul className="space-y-2">
-            {result.individual_results.personality?.dominant_traits &&
-              Object.keys(result.individual_results.personality.dominant_traits).map((trait, i) => (
-                <li key={i} className="flex items-center">
-                  <span className="w-4 h-4 bg-purple-500 rounded-full mr-2"></span>
-                  <span className="capitalize">{trait.replace(/_/g, ' ')}</span>
-                </li>
-              ))
-            }
-          </ul>
+          <div className="max-h-64 overflow-y-auto pr-2 scrollbar-hide"> {/* Added scrollable container */}
+            <ul className="space-y-2">
+              {result.individual_results.personality?.dominant_traits &&
+                Object.entries(result.individual_results.personality.dominant_traits)
+                  .sort((a, b) => b[1] - a[1]) // Sort by score descending
+                  .map(([trait, score], i) => (
+                    <li key={i} className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <span className="w-4 h-4 bg-purple-500 rounded-full mr-2"></span>
+                        <span className="capitalize">{trait.replace(/_/g, ' ')}</span>
+                      </div>
+                    </li>
+                  ))
+              }
+            </ul>
+          </div>
         </div>
 
         <div className="bg-gray-700 rounded-xl p-6">
