@@ -8,7 +8,8 @@ const Evaluation = ({
   isSaving,
   setActiveTab,
   saveReport,
-  navigate
+  navigate,
+  resetAssessmentState
 }) => {
   useDocumentTitle("Activity Evaluation");
   return (
@@ -50,15 +51,18 @@ const Evaluation = ({
       <div className="flex justify-center mt-8 space-x-6">
         <button
           onClick={() => setActiveTab("activity")}
-          className="px-6 py-3 bg-gray-700 rounded-lg"
+          className="px-6 py-3 bg-gray-700 rounded-lg cursor-pointer font-bold"
         >
           Back to Activity
         </button>
         <button
-          onClick={() => navigate("/guidance")}
-          className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg font-bold"
+          onClick={() => {
+            resetAssessmentState();
+            setActiveTab("dashboard");
+          }}
+          className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg font-bold cursor-pointer"
         >
-          Take Another Assessment
+          Back to Dashboard
         </button>
       </div>
     </motion.div>

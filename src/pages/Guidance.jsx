@@ -82,6 +82,19 @@ const Guidance = () => {
     setEvaluationResult(null);
   };
 
+  const resetAssessmentState = () => {
+    setLevel("");
+    setQuestions({ personality: [], orientation: [], interest: [], aptitude: [] });
+    setAnswers({});
+    setResult(null);
+    setSelectedCareer(null);
+    setActivities([]);
+    setUserResponse("");
+    setEvaluationResult(null);
+    setCurrentCategory('personality');
+    setCurrentQuestionIndex(0);
+  };
+
   const navigateToReport = (reportId) => {
     navigate(`/reports/${reportId}`);
   };
@@ -366,6 +379,7 @@ const Guidance = () => {
                   setActiveTab={setActiveTab}
                   saveReport={saveReport}
                   navigate={navigate}
+                  resetAssessmentState={resetAssessmentState} 
                 />
               )}
             </>
