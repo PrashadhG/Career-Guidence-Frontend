@@ -96,7 +96,7 @@ const Sidebar = ({ activePage, setActivePage, sidebarOpen, setSidebarOpen }) => 
         <div className="p-4 border-t border-gray-700">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center space-x-2 p-3 rounded-lg text-red-400 hover:bg-red-400/10 transition-colors"
+            className="w-full flex items-center space-x-2 p-3 rounded-lg  hover:bg-white/10 transition-colors"
           >
             <LogOut className="h-5 w-5" />
             {sidebarOpen && <span>Logout</span>}

@@ -17,7 +17,8 @@ const Dashboard = ({
   handleStartAssessment,
   navigateToReport,
   setSidebarOpen,
-  setActiveTab
+  setActiveTab,
+  userName
 }) => {
   useDocumentTitle('Dashboard');
   const [showAllReports, setShowAllReports] = useState(false);
@@ -64,11 +65,10 @@ const Dashboard = ({
                   <h3 className="text-lg font-medium text-white line-clamp-1">
                     {report.selectedCareer || 'Career Assessment'}
                   </h3>
-                  <span className={`px-2 py-1 rounded-full text-xs ${
-                    report.evaluationResults?.length
+                  <span className={`px-2 py-1 rounded-full text-xs ${report.evaluationResults?.length
                       ? 'bg-green-900/50 text-green-300'
                       : 'bg-yellow-900/50 text-yellow-300'
-                  }`}>
+                    }`}>
                     {report.evaluationResults?.length ? 'Completed' : 'In Progress'}
                   </span>
                 </div>
@@ -126,7 +126,9 @@ const Dashboard = ({
       >
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="relative z-10">
-          <h1 className="text-3xl font-bold text-white mb-2">Welcome to CareerGuide</h1>
+          <h1 className="text-3xl font-bold text-white mb-2">
+            Welcome {userName || 'to Career Pulse'}
+          </h1>
           <p className="text-gray-200 mb-6">Discover your perfect career path with our assessment</p>
           <motion.button
             onClick={handleStartWithSidebarClose}
@@ -223,8 +225,8 @@ const Dashboard = ({
             <p className="text-gray-300">{error}</p>
           </div>
         ) : reports?.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {reports.slice(0, 2).map((report) => (
+          <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
+            {reports.slice(0, 4).map((report) => (
               <motion.div
                 key={report._id}
                 className="bg-gray-800/70 rounded-lg p-5 hover:bg-gray-700/50 transition-colors cursor-pointer border border-gray-700"
@@ -235,11 +237,10 @@ const Dashboard = ({
                   <h3 className="text-lg font-medium text-white line-clamp-1">
                     {report.selectedCareer || 'Career Assessment'}
                   </h3>
-                  <span className={`px-2 py-1 rounded-full text-xs ${
-                    report.evaluationResults?.length
+                  <span className={`px-2 py-1 rounded-full text-xs ${report.evaluationResults?.length
                       ? 'bg-green-900/50 text-green-300'
                       : 'bg-yellow-900/50 text-yellow-300'
-                  }`}>
+                    }`}>
                     {report.evaluationResults?.length ? 'Completed' : 'In Progress'}
                   </span>
                 </div>

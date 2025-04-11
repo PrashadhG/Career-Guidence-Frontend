@@ -15,6 +15,7 @@ import Sidebar from "../components/SideBar";
 const Guidance = () => {
   const token = localStorage.getItem("token");
   const [level, setLevel] = useState("");
+  const [userName, setUserName] = useState('');
   const [questions, setQuestions] = useState({
     personality: [],
     orientation: [],
@@ -69,6 +70,31 @@ const Guidance = () => {
 
     fetchReports();
   }, [activeTab, isSaving]);
+  
+  useEffect(() => {
+    const fetchUserName = async () => {
+      
+      try {
+        const response = await api.get('/users/me');
+        const name = typeof response.data === 'string' 
+          ? response.data 
+          : response.data.user?.name || response.data.name || '';
+        
+        setUserName(name);
+      } catch (err) {
+        console.error('Failed to fetch user name:', err);
+        setError(err.response?.data?.message || 'Failed to load user name');
+        setUserName('');
+      } 
+    };
+
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetchUserName();
+    } else {
+      setError('Authentication required');
+    }
+  }, []);
 
   const handleStartAssessment = () => {
     setActiveTab("assessment");
@@ -105,7 +131,7 @@ const Guidance = () => {
     const requestData = {
       level,
       categories: ["personality", "orientation", "interest", "aptitude"],
-      questions_per_category: 10
+      questions_per_category: 20
     };
     try {
       const res = await axios.post("http://127.0.0.1:8000/generate_psychometric_assessment", requestData);
@@ -309,6 +335,7 @@ const Guidance = () => {
               navigateToReport={navigateToReport}
               setActiveTab={setActiveTab}
               setSidebarOpen={setSidebarOpen}
+              userName={userName}
             />
           ) : activeTab === "reports" ? (
             <Reports savedReports={savedReports} setActiveTab={setActiveTab} navigate={navigate} />
