@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { FiArrowLeft, FiDownload, FiLoader } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import useDocumentTitle from '../components/title';
-
+import html2canvas from 'html2canvas-pro'; // Using html2canvas-pro
+import { PDFDocument } from 'pdf-lib';
 
 const ReportDetailPage = () => {
   const { id } = useParams();
@@ -12,6 +13,8 @@ const ReportDetailPage = () => {
   const [report, setReport] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const reportRef = useRef(); // Reference to the report element
+
   useDocumentTitle('Report Details');
 
   useEffect(() => {
@@ -31,12 +34,129 @@ const ReportDetailPage = () => {
     fetchReport();
   }, [id]);
 
-  const handlePrint = async () => { 
+  const handlePrint = () => {
     window.print();
-  }
+  };
+
+  const findSafeSplit = (canvas, proposedY, searchRange = 40) => {
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    // We'll define "mostly blank" as less than 5% of pixels having alpha>20
+    const maxNonEmpty = Math.floor(width * 0.05);
+
+    let bestY = proposedY;
+    for (let y = proposedY; y > proposedY - searchRange && y > 0; y--) {
+      // Grab a single row of pixels
+      const rowData = ctx.getImageData(0, y, width, 1).data;
+      let countNonEmpty = 0;
+
+      for (let x = 0; x < width; x++) {
+        const alpha = rowData[x * 4 + 3]; // The alpha channel of each pixel
+        if (alpha > 20) {
+          countNonEmpty++;
+          // If we exceed maxNonEmpty, row is not "mostly blank"
+          if (countNonEmpty > maxNonEmpty) {
+            break;
+          }
+        }
+      }
+
+      // If we found a row that is mostly blank, break here
+      if (countNonEmpty <= maxNonEmpty) {
+        bestY = y;
+        break;
+      }
+    }
+    return bestY;
+  };
 
   const handleDownload = async () => {
-    
+    if (!reportRef.current) return;
+    try {
+      setIsLoading(true);
+      const canvas = await html2canvas(reportRef.current, { scale: 2 });
+
+      // A4 dimensions in points (approx.)
+      const pdfWidth = 595.28;
+      const pdfHeight = 841.89;
+      const margin = 40; // margin on each side
+      const contentWidth = pdfWidth - 2 * margin;
+      const contentHeight = pdfHeight - 2 * margin;
+
+      // Scale to fit canvas width into the PDF's content width
+      const scale = contentWidth / canvas.width;
+
+      // The portion of the canvas that fits in one page
+      const pageHeightInCanvas = contentHeight / scale;
+
+      // Number of pages needed
+      const totalPages = Math.ceil(canvas.height / pageHeightInCanvas);
+
+      const pdfDoc = await PDFDocument.create();
+
+      for (let i = 0; i < totalPages; i++) {
+        const startY = i * pageHeightInCanvas;
+        let breakY = (i + 1) * pageHeightInCanvas;
+        if (breakY > canvas.height) breakY = canvas.height;
+
+        // Attempt to find a more "natural" break if possible
+        const safeY = findSafeSplit(canvas, breakY, 40);
+        const sliceHeight = safeY - startY;
+        
+        // Prepare a canvas for this slice
+        const pageCanvas = document.createElement('canvas');
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sliceHeight;
+        const ctx = pageCanvas.getContext('2d');
+
+        // Draw the slice
+        ctx.drawImage(
+          canvas,
+          0,
+          startY,
+          canvas.width,
+          sliceHeight,
+          0,
+          0,
+          canvas.width,
+          sliceHeight
+        );
+
+        const sliceImgData = pageCanvas.toDataURL('image/png');
+        const pngImage = await pdfDoc.embedPng(sliceImgData);
+        const imageHeight = sliceHeight * scale;
+
+        // Add a new PDF page (A4)
+        const page = pdfDoc.addPage([pdfWidth, pdfHeight]);
+        // Draw the image with the specified margins (left margin + top margin)
+        page.drawImage(pngImage, {
+          x: margin,
+          y: pdfHeight - margin - imageHeight,
+          width: contentWidth,
+          height: imageHeight,
+        });
+
+        canvas.height;
+
+        const usedPages = Math.ceil((safeY - i * pageHeightInCanvas) / pageHeightInCanvas);
+        i += usedPages - 1;
+      }
+
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `report-${id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (error) {
@@ -72,7 +192,7 @@ const ReportDetailPage = () => {
           </button>
           <div className="flex space-x-4">
             <motion.button
-              onClick={handlePrint}
+              onClick={handleDownload}
               className="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -94,6 +214,7 @@ const ReportDetailPage = () => {
 
         {/* Report Card */}
         <motion.div
+          ref={reportRef}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -141,26 +262,27 @@ const ReportDetailPage = () => {
                   Personality Traits
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {Object.entries(report.results.individual_results.personality.dominant_traits).map(([trait, value]) => (
-                    <div key={trait} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                      <h3 className="font-medium text-gray-800 capitalize">
-                        {trait.replace(/_/g, ' ')}
-                      </h3>
-                      <p className="text-purple-600 capitalize mt-1">
-                        {value.replace(/_/g, ' ')}
-                      </p>
-                    </div>
-                  ))}
+                  {Object.entries(report.results.individual_results.personality.dominant_traits).map(
+                    ([trait, value]) => (
+                      <div key={trait} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                        <h3 className="font-medium text-gray-800 capitalize">
+                          {trait.replace(/_/g, ' ')}
+                        </h3>
+                        <p className="text-purple-600 capitalize mt-1">
+                          {value.replace(/_/g, ' ')}
+                        </p>
+                      </div>
+                    )
+                  )}
                 </div>
               </section>
             )}
 
-            {/* Assessment Results */}
+            {/* Detailed Results */}
             <section>
               <h2 className="text-2xl font-bold text-gray-800 mb-4">
                 Detailed Results
               </h2>
-
               {/* Aptitude Scores */}
               {report.results?.individual_results?.aptitude?.scores && (
                 <div className="mb-8">
@@ -168,54 +290,68 @@ const ReportDetailPage = () => {
                     Aptitude Scores
                   </h3>
                   <div className="space-y-4">
-                    {Object.entries(report.results.individual_results.aptitude.scores).map(([aptitude, score]) => (
-                      <div key={aptitude}>
-                        <div className="flex justify-between mb-1">
-                          <span className="capitalize text-gray-700">
-                            {aptitude.replace(/_/g, ' ')}
-                          </span>
-                          <span className="font-medium">{score}%</span>
+                    {Object.entries(report.results.individual_results.aptitude.scores).map(
+                      ([aptitude, score]) => (
+                        <div key={aptitude}>
+                          <div className="flex justify-between mb-1">
+                            <span className="capitalize text-gray-700">
+                              {aptitude.replace(/_/g, ' ')}
+                            </span>
+                            <span className="font-medium">{score}%</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2.5">
+                            <div
+                              className="bg-blue-600 h-2.5 rounded-full"
+                              style={{ width: `${score}%` }}
+                            ></div>
+                          </div>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2.5">
-                          <div
-                            className="bg-blue-600 h-2.5 rounded-full"
-                            style={{ width: `${score}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    ))}
+                      )
+                    )}
                   </div>
                 </div>
               )}
-
+              
               {/* Subject Recommendations */}
               {report.results?.subject_recommendations && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <h4 className="font-semibold text-gray-700 mb-2">Core Subjects</h4>
+                    <h4 className="font-semibold text-gray-700 mb-2">
+                      Core Subjects
+                    </h4>
                     <div className="flex flex-wrap gap-2">
                       {report.results.subject_recommendations.core.map((subject, i) => (
-                        <span key={i} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                        <span
+                          key={i}
+                          className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                        >
                           {subject}
                         </span>
                       ))}
                     </div>
                   </div>
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <h4 className="font-semibold text-gray-700 mb-2">Elective Subjects</h4>
+                    <h4 className="font-semibold text-gray-700 mb-2">
+                      Elective Subjects
+                    </h4>
                     <div className="flex flex-wrap gap-2">
-                      {report.results?.subject_recommendations?.elective?.map((subject, i) => (
-                        <span key={i} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
-                          {subject}
-                        </span>
-                      ))}
+                      {report.results?.subject_recommendations?.elective?.map(
+                        (subject, i) => (
+                          <span
+                            key={i}
+                            className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm"
+                          >
+                            {subject}
+                          </span>
+                        )
+                      )}
                     </div>
                   </div>
                 </div>
               )}
             </section>
 
-            {/* Activities */}
+            {/* Recommended Activities */}
             {report.activities?.length > 0 && (
               <section>
                 <h2 className="text-2xl font-bold text-gray-800 mb-4">
@@ -223,41 +359,59 @@ const ReportDetailPage = () => {
                 </h2>
                 <div className="space-y-4">
                   {report.activities.map((activity, index) => (
-                    <div key={index} className="border-l-4 border-blue-500 pl-4 py-2">
-                      <h3 className="font-semibold text-lg">{activity.title}</h3>
-                      <p className="text-gray-600 mt-1">{activity.instructions}</p>
+                    <div
+                      key={index}
+                      className="border-l-4 border-blue-500 pl-4 py-2"
+                    >
+                      <h3 className="font-semibold text-lg">
+                        {activity.title}
+                      </h3>
+                      <p className="text-gray-600 mt-1">
+                        {activity.instructions}
+                      </p>
                     </div>
                   ))}
                 </div>
               </section>
             )}
 
-            {/* Evaluation Results */}
+            {/* Activity Evaluation */}
             {report.evaluationResults?.length > 0 && (
               <section>
                 <h2 className="text-2xl font-bold text-gray-800 mb-4">
                   Activity Evaluation
                 </h2>
                 <div className="bg-gray-50 p-6 rounded-lg">
-                  {Object.entries(report.evaluationResults[0]).map(([key, value]) => (
-                    <div key={key} className="mb-4 last:mb-0">
-                      <h3 className="font-medium capitalize text-gray-700 mb-1">
-                        {key.replace(/_/g, ' ')}:
-                      </h3>
-                      {typeof value === 'object' ? (
-                        <div className="ml-4">
-                          <p className="text-gray-600">
-                            <span className="font-medium">Score:</span> {value.score}
-                          </p>
-                          <p className="text-gray-600">
-                            <span className="font-medium">Feedback:</span> {value.feedback}
-                          </p>
-                        </div>
-                      ) : (
-                        <p className="text-gray-600">{value}</p>
-                      )}
-                    </div>
-                  ))}
+                  {Object.entries(report.evaluationResults[0]).map(
+                    ([key, value]) => (
+                      <div
+                        key={key}
+                        className="mb-4 last:mb-0"
+                      >
+                        <h3 className="font-medium capitalize text-gray-700 mb-1">
+                          {key.replace(/_/g, ' ')}
+                        </h3>
+                        {typeof value === 'object' ? (
+                          <div className="ml-4">
+                            <p className="text-gray-600">
+                              <span className="font-medium">
+                                Score:
+                              </span>{' '}
+                              {value.score}
+                            </p>
+                            <p className="text-gray-600">
+                              <span className="font-medium">
+                                Feedback:
+                              </span>{' '}
+                              {value.feedback}
+                            </p>
+                          </div>
+                        ) : (
+                          <p className="text-gray-600">{value}</p>
+                        )}
+                      </div>
+                    )
+                  )}
                 </div>
               </section>
             )}
