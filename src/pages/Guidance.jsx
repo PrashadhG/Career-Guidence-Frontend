@@ -273,11 +273,6 @@ const Guidance = () => {
     return Math.round(score);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/');
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-purple-900 text-white flex">
       <Sidebar
@@ -285,7 +280,6 @@ const Guidance = () => {
         setActivePage={setActiveTab}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
-        handleLogout={handleLogout}
       />
 
       <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-20'}`}>

@@ -15,7 +15,7 @@ const Sidebar = ({ activePage, setActivePage, sidebarOpen, setSidebarOpen }) => 
     try {
       localStorage.removeItem('token');
       localStorage.removeItem('rememberedEmail');
-      navigate('/');
+      navigate('/login');
     } catch (error) {
       console.error('Logout failed:', error);
     }
