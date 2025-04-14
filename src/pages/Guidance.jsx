@@ -131,7 +131,7 @@ const Guidance = () => {
     const requestData = {
       level,
       categories: ["personality", "orientation", "interest", "aptitude"],
-      questions_per_category: 20
+      questions_per_category: 10
     };
     try {
       const res = await axios.post("http://127.0.0.1:8000/generate_psychometric_assessment", requestData);
@@ -194,9 +194,6 @@ const Guidance = () => {
 
   const handleSubmitQuiz = async () => {
     const totalQuestions = Object.values(questions).flat().length;
-    if (Object.keys(answers).length !== totalQuestions) {
-      return alert("Please answer all questions!");
-    }
     setIsSubmittingAssessment(true);
     const formattedAnswers = {
       user_id: assessmentId,

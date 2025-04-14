@@ -12,12 +12,20 @@ const Activity = ({
   handleSubmitActivityResponse,
   saveReport
 }) => {
+  const handleContextMenu = (e) => {
+    if (e.target.tagName.toLowerCase() !== 'textarea') {
+      e.preventDefault();
+    }
+  };
+
   useDocumentTitle("Career Activity");
   return (
     <motion.div
       className="bg-gray-800 bg-opacity-50 rounded-xl p-6 backdrop-blur-sm"
+      style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
+      onContextMenu={handleContextMenu}
     >
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-3xl font-bold">📚 Career Activity</h2>
@@ -54,6 +62,7 @@ const Activity = ({
           className="w-full p-4 bg-gray-800 rounded-lg text-white mb-4 min-h-[200px]"
           placeholder="Write your response here..."
           value={userResponse}
+          style={{ userSelect: 'text', WebkitUserSelect: 'text' }}
           onChange={(e) => setUserResponse(e.target.value)}
         />
         <div className="flex justify-end">

@@ -1,19 +1,21 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import api from "../utils/api";
 import { FiArrowLeft, FiDownload, FiLoader } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import useDocumentTitle from '../components/title';
-import html2canvas from 'html2canvas-pro'; // Using html2canvas-pro
+import html2canvas from 'html2canvas-pro';
 import { PDFDocument } from 'pdf-lib';
 
 const ReportDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [report, setReport] = useState(null);
+  const [userName, setUserName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const reportRef = useRef(); // Reference to the report element
+  const reportRef = useRef();
 
   useDocumentTitle('Report Details');
 
@@ -30,86 +32,64 @@ const ReportDetailPage = () => {
         setIsLoading(false);
       }
     };
-
     fetchReport();
   }, [id]);
 
-  const handlePrint = () => {
-    window.print();
-  };
-
-  const findSafeSplit = (canvas, proposedY, searchRange = 40) => {
-    const ctx = canvas.getContext('2d');
-    const width = canvas.width;
-    // We'll define "mostly blank" as less than 5% of pixels having alpha>20
-    const maxNonEmpty = Math.floor(width * 0.05);
-
-    let bestY = proposedY;
-    for (let y = proposedY; y > proposedY - searchRange && y > 0; y--) {
-      // Grab a single row of pixels
-      const rowData = ctx.getImageData(0, y, width, 1).data;
-      let countNonEmpty = 0;
-
-      for (let x = 0; x < width; x++) {
-        const alpha = rowData[x * 4 + 3]; // The alpha channel of each pixel
-        if (alpha > 20) {
-          countNonEmpty++;
-          // If we exceed maxNonEmpty, row is not "mostly blank"
-          if (countNonEmpty > maxNonEmpty) {
-            break;
-          }
-        }
+  useEffect(() => {
+    const fetchUserName = async () => {
+      try {
+        const response = await api.get('/users/me');
+        const name = typeof response.data === 'string'
+          ? response.data
+          : response.data.user?.name || response.data.name || '';
+        setUserName(name);
+      } catch (err) {
+        console.error('Failed to fetch user name:', err);
+        setError(err.response?.data?.message || 'Failed to load user name');
+        setUserName('');
       }
+    };
 
-      // If we found a row that is mostly blank, break here
-      if (countNonEmpty <= maxNonEmpty) {
-        bestY = y;
-        break;
-      }
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetchUserName();
+    } else {
+      setError('Authentication required');
     }
-    return bestY;
-  };
+  }, []);
 
   const handleDownload = async () => {
     if (!reportRef.current) return;
     try {
       setIsLoading(true);
-      const canvas = await html2canvas(reportRef.current, { scale: 2 });
-
-      // A4 dimensions in points (approx.)
-      const pdfWidth = 595.28;
-      const pdfHeight = 841.89;
-      const margin = 40; // margin on each side
-      const contentWidth = pdfWidth - 2 * margin;
-      const contentHeight = pdfHeight - 2 * margin;
-
-      // Scale to fit canvas width into the PDF's content width
-      const scale = contentWidth / canvas.width;
-
-      // The portion of the canvas that fits in one page
-      const pageHeightInCanvas = contentHeight / scale;
-
-      // Number of pages needed
-      const totalPages = Math.ceil(canvas.height / pageHeightInCanvas);
+      const canvas = await html2canvas(reportRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#fff'
+      });
 
       const pdfDoc = await PDFDocument.create();
 
-      for (let i = 0; i < totalPages; i++) {
-        const startY = i * pageHeightInCanvas;
-        let breakY = (i + 1) * pageHeightInCanvas;
-        if (breakY > canvas.height) breakY = canvas.height;
+      const pdfWidth = 595.28;
+      const pdfHeight = 841.89;
+      const margin = 40;
+      const contentWidth = pdfWidth - 2 * margin;
+      const contentHeight = pdfHeight - 2 * margin;
+      const scale = contentWidth / canvas.width;
+      const pageHeightInCanvas = contentHeight / scale;
 
-        // Attempt to find a more "natural" break if possible
-        const safeY = findSafeSplit(canvas, breakY, 40);
-        const sliceHeight = safeY - startY;
-        
-        // Prepare a canvas for this slice
+      let startY = 0;
+
+      while (startY < canvas.height) {
+        const remainingHeight = canvas.height - startY;
+        let sliceHeight = Math.min(pageHeightInCanvas, remainingHeight);
+        const safeY = findSafeSplit(canvas, startY + sliceHeight, 40);
+        sliceHeight = safeY - startY;
+
         const pageCanvas = document.createElement('canvas');
         pageCanvas.width = canvas.width;
         pageCanvas.height = sliceHeight;
         const ctx = pageCanvas.getContext('2d');
-
-        // Draw the slice
         ctx.drawImage(
           canvas,
           0,
@@ -126,9 +106,7 @@ const ReportDetailPage = () => {
         const pngImage = await pdfDoc.embedPng(sliceImgData);
         const imageHeight = sliceHeight * scale;
 
-        // Add a new PDF page (A4)
         const page = pdfDoc.addPage([pdfWidth, pdfHeight]);
-        // Draw the image with the specified margins (left margin + top margin)
         page.drawImage(pngImage, {
           x: margin,
           y: pdfHeight - margin - imageHeight,
@@ -136,10 +114,7 @@ const ReportDetailPage = () => {
           height: imageHeight,
         });
 
-        canvas.height;
-
-        const usedPages = Math.ceil((safeY - i * pageHeightInCanvas) / pageHeightInCanvas);
-        i += usedPages - 1;
+        startY = safeY;
       }
 
       const pdfBytes = await pdfDoc.save();
@@ -147,7 +122,7 @@ const ReportDetailPage = () => {
       const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = blobUrl;
-      link.download = `report-${id}.pdf`;
+      link.download = `report-${userName || 'user'}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -158,6 +133,32 @@ const ReportDetailPage = () => {
       setIsLoading(false);
     }
   };
+
+  const findSafeSplit = (canvas, proposedY, searchRange = 40) => {
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const maxNonEmpty = Math.floor(width * 0.05);
+    let bestY = proposedY;
+
+    for (let y = proposedY; y > proposedY - searchRange && y > 0; y--) {
+      const rowData = ctx.getImageData(0, y, width, 1).data;
+      let countNonEmpty = 0;
+      for (let x = 0; x < width; x++) {
+        const alpha = rowData[x * 4 + 3];
+        if (alpha > 20) {
+          countNonEmpty++;
+          if (countNonEmpty > maxNonEmpty) break;
+        }
+      }
+      if (countNonEmpty <= maxNonEmpty) {
+        bestY = y;
+        break;
+      }
+    }
+    return bestY;
+  };
+
+  const handlePrint = () => window.print(); 
 
   if (error) {
     return (
@@ -201,7 +202,6 @@ const ReportDetailPage = () => {
               {isLoading ? (
                 <>
                   <FiLoader className="animate-spin mr-2" />
-                  Generating...
                 </>
               ) : (
                 <>

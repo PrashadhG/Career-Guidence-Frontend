@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Mail, Lock, Loader2 } from "lucide-react";
+import { Mail, Lock, Loader2, Eye, EyeOff } from "lucide-react";
 import api from "../utils/api";
 import useDocumentTitle from "../components/title";
 
@@ -10,6 +10,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({
     email: "",
     password: "",
@@ -18,7 +19,6 @@ const Login = () => {
   const navigate = useNavigate();
   useDocumentTitle("Login");
 
-  // Load remembered email on component mount
   useEffect(() => {
     const rememberedEmail = localStorage.getItem("rememberedEmail");
     if (rememberedEmail) {
@@ -32,7 +32,6 @@ const Login = () => {
     setErrors({ email: "", password: "", message: "" });
     setIsLoading(true);
 
-    // Email Validation
     if (!email) {
       setErrors(prev => ({ ...prev, email: "Email is required" }));
       setIsLoading(false);
@@ -51,7 +50,6 @@ const Login = () => {
 
     try {
       const res = await api.post("/auth/login", { email, password });
-
       localStorage.setItem("token", res.data.token);
 
       if (rememberMe) {
@@ -62,7 +60,7 @@ const Login = () => {
 
       navigate("/guidance");
     } catch (err) {
-      if (err.response?.status === 401 || err.response?.status === 400) {
+      if (err.response?.status === 400) {
         setErrors(prev => ({ ...prev, message: "Invalid email or password" }));
       } else {
         setErrors(prev => ({
@@ -74,6 +72,7 @@ const Login = () => {
       setIsLoading(false);
     }
   };
+
   return (
     <motion.div
       initial={{ y: 50, opacity: 0 }}
@@ -104,7 +103,9 @@ const Login = () => {
               <input
                 type="email"
                 placeholder="Email"
-                className={`block w-full pl-10 pr-3 py-2 border ${errors.email ? 'border-red-500' : 'border-gray-600'} rounded-md bg-[#374151] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                className={`block w-full pl-10 pr-3 py-2 border ${
+                  errors.email ? 'border-red-500' : 'border-gray-600'
+                } rounded-md bg-[#374151] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
@@ -121,20 +122,33 @@ const Login = () => {
                 <Lock className="h-5 w-5 text-gray-400" />
               </div>
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="Password"
-                className={`block w-full pl-10 pr-3 py-2 border ${errors.password ? 'border-red-500' : 'border-gray-600'} rounded-md bg-[#374151] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                className={`block w-full pl-10 pr-10 py-2 border ${
+                  errors.password ? 'border-red-500' : 'border-gray-600'
+                } rounded-md bg-[#374151] text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
                   setErrors(prev => ({ ...prev, password: "" }));
                 }}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-300"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
+              </button>
             </div>
             {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password}</p>}
           </div>
 
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center mb-6">
             <div className="flex items-center">
               <input
                 id="remember-me"
@@ -147,12 +161,6 @@ const Login = () => {
               <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-300">
                 Remember me
               </label>
-            </div>
-
-            <div className="text-sm">
-              <a href="/forgot-password" className="font-medium text-blue-400 hover:text-blue-300">
-                Forgot password?
-              </a>
             </div>
           </div>
 
