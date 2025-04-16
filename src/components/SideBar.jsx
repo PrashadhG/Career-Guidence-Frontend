@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   ClipboardList,
   LogOut,
   LayoutDashboard,
   X,
-  Menu
+  Menu,
+  FileText
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import logo from "../assets/logoWhite.png"
@@ -12,10 +13,18 @@ import logo from "../assets/logoWhite.png"
 const Sidebar = ({ activePage, setActivePage, sidebarOpen, setSidebarOpen }) => {
   const navigate = useNavigate();
 
+  // Close sidebar when assessment tab is active
+  useEffect(() => {
+    if (activePage === 'assessment') {
+      setSidebarOpen(false);
+    }
+  }, [activePage, setSidebarOpen]);
+
   const handleLogout = async () => {
     try {
       localStorage.removeItem('token');
       localStorage.removeItem('rememberedEmail');
+      localStorage.removeItem('currentAssessment');
       navigate('/login');
     } catch (error) {
       console.error('Logout failed:', error);
@@ -26,10 +35,13 @@ const Sidebar = ({ activePage, setActivePage, sidebarOpen, setSidebarOpen }) => 
     setSidebarOpen(!sidebarOpen);
   };
 
-  // Function to handle page change and close sidebar if assessment is selected
   const handlePageChange = (page) => {
     setActivePage(page);
+    // Always close sidebar when selecting assessment tab
     if (page === 'assessment') {
+      setSidebarOpen(false);
+    } else if (window.innerWidth < 768) {
+      // Close sidebar on mobile for any page selection
       setSidebarOpen(false);
     }
   };
@@ -66,15 +78,15 @@ const Sidebar = ({ activePage, setActivePage, sidebarOpen, setSidebarOpen }) => 
           )}
         </div>
 
-
         {/* Navigation Links */}
         <nav className="p-4 flex-grow overflow-y-auto">
           <button
             onClick={() => handlePageChange('dashboard')}
-            className={`w-full flex items-center space-x-2 p-3 rounded-lg mb-2 transition-colors ${activePage === 'dashboard'
-              ? 'bg-white/10 text-white'
-              : 'text-gray-300 hover:bg-white/5'
-              }`}
+            className={`w-full flex items-center space-x-2 p-3 rounded-lg mb-2 transition-colors ${
+              activePage === 'dashboard'
+                ? 'bg-white/10 text-white'
+                : 'text-gray-300 hover:bg-white/5'
+            }`}
           >
             <LayoutDashboard className="h-5 w-5" />
             {sidebarOpen && <span>Dashboard</span>}
@@ -82,13 +94,27 @@ const Sidebar = ({ activePage, setActivePage, sidebarOpen, setSidebarOpen }) => 
 
           <button
             onClick={() => handlePageChange('assessment')}
-            className={`w-full flex items-center space-x-2 p-3 rounded-lg mb-2 transition-colors ${activePage === 'assessment'
-              ? 'bg-white/10 text-white'
-              : 'text-gray-300 hover:bg-white/5'
-              }`}
+            className={`w-full flex items-center space-x-2 p-3 rounded-lg mb-2 transition-colors ${
+              activePage === 'assessment'
+                ? 'bg-white/10 text-white'
+                : 'text-gray-300 hover:bg-white/5'
+            }`}
           >
             <ClipboardList className="h-5 w-5" />
             {sidebarOpen && <span>Assessment</span>}
+          </button>
+
+          {/* Reports Tab */}
+          <button
+            onClick={() => handlePageChange('reports')}
+            className={`w-full flex items-center space-x-2 p-3 rounded-lg mb-2 transition-colors ${
+              activePage === 'reports'
+                ? 'bg-white/10 text-white'
+                : 'text-gray-300 hover:bg-white/5'
+            }`}
+          >
+            <FileText className="h-5 w-5" />
+            {sidebarOpen && <span>Reports</span>}
           </button>
         </nav>
 
@@ -96,7 +122,7 @@ const Sidebar = ({ activePage, setActivePage, sidebarOpen, setSidebarOpen }) => 
         <div className="p-4 border-t border-gray-700">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center space-x-2 p-3 rounded-lg  hover:bg-white/10 transition-colors"
+            className="w-full flex items-center space-x-2 p-3 rounded-lg hover:bg-white/10 transition-colors"
           >
             <LogOut className="h-5 w-5" />
             {sidebarOpen && <span>Logout</span>}

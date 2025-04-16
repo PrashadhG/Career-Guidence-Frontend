@@ -122,7 +122,7 @@ const ReportDetailPage = () => {
       const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = blobUrl;
-      link.download = `report-${userName || 'user'}.pdf`;
+      link.download = `career_pulse_ai_${userName || 'user'}_report.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -202,6 +202,7 @@ const ReportDetailPage = () => {
               {isLoading ? (
                 <>
                   <FiLoader className="animate-spin mr-2" />
+                  Downloading...
                 </>
               ) : (
                 <>

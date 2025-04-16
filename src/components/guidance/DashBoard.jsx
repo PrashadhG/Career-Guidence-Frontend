@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   ChevronRight,
   AlertCircle,
   Loader2,
   BookOpen,
-  ClipboardList,
-  ArrowLeft
+  ClipboardList
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import useDocumentTitle from '../title';
@@ -21,100 +20,11 @@ const Dashboard = ({
   userName
 }) => {
   useDocumentTitle('Dashboard');
-  const [showAllReports, setShowAllReports] = useState(false);
 
   const handleStartWithSidebarClose = () => {
     setSidebarOpen(false);
     handleStartAssessment();
   };
-
-  if (showAllReports) {
-    return (
-      <div className="h-full">
-        <div className="mb-6">
-          <button
-            onClick={() => setShowAllReports(false)}
-            className="flex items-center text-purple-400 hover:text-purple-300 mb-2"
-          >
-            <ArrowLeft className="h-5 w-5 mr-1" />
-            Back
-          </button>
-          <h2 className="text-2xl font-semibold">📚 My Saved Reports</h2>
-        </div>
-
-        {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <Loader2 className="h-12 w-12 text-white animate-spin" />
-          </div>
-        ) : error ? (
-          <div className="text-center py-16 bg-gray-800/30 rounded-xl">
-            <AlertCircle className="h-16 w-16 text-red-400 mx-auto mb-4" />
-            <h3 className="text-xl font-medium text-white mb-2">Error Loading Reports</h3>
-            <p className="text-gray-300">{error}</p>
-          </div>
-        ) : reports?.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {reports.map((report) => (
-              <motion.div
-                key={report._id}
-                className="bg-gray-800/70 rounded-lg p-5 hover:bg-gray-700/50 transition-colors cursor-pointer border border-gray-700"
-                whileHover={{ y: -5 }}
-                onClick={() => navigateToReport(report._id)}
-              >
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="text-lg font-medium text-white line-clamp-1">
-                    {report.selectedCareer || 'Career Assessment'}
-                  </h3>
-                  <span className={`px-2 py-1 rounded-full text-xs ${report.evaluationResults?.length
-                      ? 'bg-green-900/50 text-green-300'
-                      : 'bg-yellow-900/50 text-yellow-300'
-                    }`}>
-                    {report.evaluationResults?.length ? 'Completed' : 'In Progress'}
-                  </span>
-                </div>
-                <p className="text-sm text-gray-400 mb-2">
-                  {new Date(report.createdAt).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                  })}
-                </p>
-                {report.level && (
-                  <p className="text-sm text-gray-400 mb-3">
-                    Grade Level: {report.level}
-                  </p>
-                )}
-                {report.results?.top_careers?.length > 0 && (
-                  <div className="mt-4">
-                    <p className="text-xs text-gray-400 mb-1">Top Career Matches:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {report.results.top_careers.slice(0, 3).map((career, i) => (
-                        <span key={i} className="px-2 py-1 bg-purple-900/30 text-purple-300 rounded-full text-xs">
-                          {career}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </motion.div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-16 bg-gray-800/30 rounded-xl">
-            <AlertCircle className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-medium text-white mb-2">No Reports Available</h3>
-            <p className="text-gray-300 mb-6">Take an assessment to get started with your career guidance journey.</p>
-            <button
-              onClick={handleStartWithSidebarClose}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg font-medium"
-            >
-              Start Assessment
-            </button>
-          </div>
-        )}
-      </div>
-    );
-  }
 
   return (
     <div className="h-full overflow-y-auto">
@@ -204,14 +114,6 @@ const Dashboard = ({
       <div className="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm border border-gray-700">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-semibold">Recent Career Reports</h2>
-          {reports?.length > 0 && (
-            <button
-              onClick={() => setShowAllReports(true)}
-              className="text-purple-400 hover:text-purple-300 text-sm font-medium"
-            >
-              View All Reports →
-            </button>
-          )}
         </div>
 
         {loading ? (
@@ -237,10 +139,11 @@ const Dashboard = ({
                   <h3 className="text-lg font-medium text-white line-clamp-1">
                     {report.selectedCareer || 'Career Assessment'}
                   </h3>
-                  <span className={`px-2 py-1 rounded-full text-xs ${report.evaluationResults?.length
+                  <span className={`px-2 py-1 rounded-full text-xs ${
+                    report.evaluationResults?.length
                       ? 'bg-green-900/50 text-green-300'
                       : 'bg-yellow-900/50 text-yellow-300'
-                    }`}>
+                  }`}>
                     {report.evaluationResults?.length ? 'Completed' : 'In Progress'}
                   </span>
                 </div>
