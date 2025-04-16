@@ -68,7 +68,7 @@ const Reports = ({
       />
 
       {error ? (
-        <div className="text-center py-16 bg-gray-800/50 rounded-xl">
+        <div className="text-center py-16 bg-gray-800/50 opacity-50  border border-gray rounded-xl">
           <div className="h-16 w-16 text-red-400 mx-auto mb-4">⚠️</div>
           <h3 className="text-xl font-medium text-white mb-2">Error Loading Reports</h3>
           <p className="text-gray-300">{error}</p>

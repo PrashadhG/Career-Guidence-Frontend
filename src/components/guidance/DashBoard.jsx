@@ -8,22 +8,27 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import useDocumentTitle from '../title';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = ({
   reports,
   loading,
   error,
   handleStartAssessment,
-  navigateToReport,
   setSidebarOpen,
   setActiveTab,
   userName
 }) => {
   useDocumentTitle('Dashboard');
+  const navigate = useNavigate();
 
   const handleStartWithSidebarClose = () => {
     setSidebarOpen(false);
     handleStartAssessment(); 
+  };
+
+  const navigateToReport = (reportId) => {
+    navigate(`/reports/${reportId}`);
   };
 
   return (
