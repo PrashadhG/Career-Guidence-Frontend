@@ -29,7 +29,7 @@ const Assessment = ({
   const calculateAnsweredProgress = () => {
     let answeredCount = 0;
     const totalQuestions = Object.values(questions).flat().length;
-    
+
     Object.keys(questions).forEach(category => {
       questions[category].forEach((q, index) => {
         const questionId = q?.id || `${category}_${index + 1}`;
@@ -47,11 +47,11 @@ const Assessment = ({
     const totalQuestions = Object.values(questions).flat().length;
     const answeredCount = Object.keys(answers).length;
     const skippedCount = Object.keys(skippedQuestions).length;
-    
+
     // Remove any skipped questions that have since been answered
     const updatedSkipped = { ...skippedQuestions };
     let hasChanges = false;
-    
+
     Object.keys(updatedSkipped).forEach(questionId => {
       if (answers[questionId]) {
         delete updatedSkipped[questionId];
@@ -83,13 +83,13 @@ const Assessment = ({
   };
 
   const handleSkipQuestion = () => {
-    const questionId = questions[currentCategory][currentQuestionIndex].id || 
-                      `${currentCategory}_${currentQuestionIndex + 1}`;
+    const questionId = questions[currentCategory][currentQuestionIndex].id ||
+      `${currentCategory}_${currentQuestionIndex + 1}`;
     setSkippedQuestions(prev => ({ ...prev, [questionId]: true }));
     handleNextQuestion();
   };
 
-  
+
 
   const handleAnswerSelectWithSkipUpdate = (category, questionId, selectedOption) => {
     // If the same option is clicked again, unselect it
@@ -97,7 +97,7 @@ const Assessment = ({
       handleAnswerSelect(category, questionId, null); // Pass null to indicate deselection
       return;
     }
-    
+
     // Remove from skipped if it exists
     if (skippedQuestions[questionId]) {
       setSkippedQuestions(prev => {
@@ -283,13 +283,13 @@ const Assessment = ({
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
                       className={`w-full h-12 rounded-md flex items-center justify-center text-xs font-medium transition-all
-                        ${status === 'active' ? 
+                        ${status === 'active' ?
                           'bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-md ring-1 ring-white' :
-                          status === 'answered' ? 
-                          'bg-green-600/80 text-white' : 
-                          status === 'skipped' ?
-                          'bg-yellow-600/80 text-white' :
-                          'bg-gray-600 hover:bg-gray-500 text-gray-200'
+                          status === 'answered' ?
+                            'bg-green-600/80 text-white' :
+                            status === 'skipped' ?
+                              'bg-yellow-600/80 text-white' :
+                              'bg-gray-600 hover:bg-gray-500 text-gray-200'
                         }`}
                       aria-label={`Question ${index + 1} - ${status}`}
                     >
@@ -320,11 +320,8 @@ const Assessment = ({
             {/* Submit Button */}
             <motion.button
               onClick={handleSubmitQuiz}
-              disabled={!allQuestionsAnswered || isSubmittingAssessment}
-              className={`w-full py-2 rounded-lg font-medium text-sm ${!allQuestionsAnswered || isSubmittingAssessment
-                ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                : 'bg-gradient-to-r from-green-600 to-teal-600 cursor-pointer'}`}
-              whileHover={allQuestionsAnswered && !isSubmittingAssessment ? { scale: 1.02 } : {}}
+              className="w-full py-2 rounded-lg font-medium text-sm bg-gradient-to-r from-green-600 to-teal-600 cursor-pointer"
+              whileHover={{ scale: 1.02 }}
             >
               {isSubmittingAssessment ? "Submitting..." : "Submit Assessment"}
             </motion.button>

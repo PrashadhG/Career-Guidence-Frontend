@@ -11,6 +11,7 @@ import Evaluation from "../components/guidance/Evaluation";
 import Reports from "../components/guidance/Reports";
 import Dashboard from "../components/guidance/DashBoard";
 import Sidebar from "../components/SideBar";
+import CustomModal from "../components/CustomModel";
 
 const Guidance = () => {
   const token = localStorage.getItem("token");
@@ -41,6 +42,7 @@ const Guidance = () => {
   const [loadingReports, setLoadingReports] = useState(true);
   const [reportsError, setReportsError] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [showUnansweredModal, setShowUnansweredModal] = useState(false);
   const navigate = useNavigate();
 
   const calculateProgress = () => {
@@ -73,7 +75,6 @@ const Guidance = () => {
   
   useEffect(() => {
     const fetchUserName = async () => {
-      
       try {
         const response = await api.get('/users/me');
         const name = typeof response.data === 'string' 
@@ -83,7 +84,6 @@ const Guidance = () => {
         setUserName(name);
       } catch (err) {
         console.error('Failed to fetch user name:', err);
-        setError(err.response?.data?.message || 'Failed to load user name');
         setUserName('');
       } 
     };
@@ -91,15 +91,13 @@ const Guidance = () => {
     const token = localStorage.getItem('token');
     if (token) {
       fetchUserName();
-    } else {
-      setError('Authentication required');
     }
   }, []);
 
   const handleStartAssessment = () => {
     setActiveTab("assessment");
     setLevel("");
-    setQuestions({ personality: [], orientation: [], interest: [] });
+    setQuestions({ personality: [], orientation: [], interest: [], aptitude: [] });
     setAnswers({});
     setResult(null);
     setSelectedCareer(null);
@@ -131,7 +129,7 @@ const Guidance = () => {
     const requestData = {
       level,
       categories: ["personality", "orientation", "interest", "aptitude"],
-      questions_per_category: 10
+      questions_per_category: 20
     };
     try {
       const res = await axios.post("http://127.0.0.1:8000/generate_psychometric_assessment", requestData);
@@ -192,9 +190,10 @@ const Guidance = () => {
     }
   };
 
-  const handleSubmitQuiz = async () => {
-    const totalQuestions = Object.values(questions).flat().length;
+  const submitAssessment = async () => {
     setIsSubmittingAssessment(true);
+    setShowUnansweredModal(false);
+    
     const formattedAnswers = {
       user_id: assessmentId,
       orientation_responses: {},
@@ -208,6 +207,7 @@ const Guidance = () => {
         Verbal_Reasoning: 0
       }
     };
+    
     Object.keys(questions).forEach(category => {
       formattedAnswers[`${category}_responses`] = {};
       questions[category].forEach((q, index) => {
@@ -217,6 +217,7 @@ const Guidance = () => {
         }
       });
     });
+    
     try {
       const res = await axios.post("http://127.0.0.1:8000/analyze_complete_assessment", formattedAnswers);
       setResult(res.data);
@@ -227,6 +228,18 @@ const Guidance = () => {
     } finally {
       setIsSubmittingAssessment(false);
     }
+  };
+
+  const handleSubmitQuiz = async () => {
+    const totalQuestions = Object.values(questions).flat().length;
+    const answeredQuestions = Object.keys(answers).length;
+    
+    if (answeredQuestions < totalQuestions) {
+      setShowUnansweredModal(true);
+      return;
+    }
+    
+    await submitAssessment();
   };
 
   const handleGenerateActivity = async () => {
@@ -410,6 +423,16 @@ const Guidance = () => {
           )}
         </div>
       </div>
+
+      <CustomModal
+        isOpen={showUnansweredModal}
+        onClose={() => setShowUnansweredModal(false)}
+        onConfirm={submitAssessment}
+        title="Unanswered Questions"
+        message={`You have unanswered questions. Are you sure you want to submit the test without completing all questions?`}
+        confirmText="Submit Anyway"
+        cancelText="Continue Test"
+      />
     </div>
   );
 };
