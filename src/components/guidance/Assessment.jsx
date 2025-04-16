@@ -18,7 +18,8 @@ const Assessment = ({
   handleSubmitQuiz,
   setCurrentCategory,
   setCurrentQuestionIndex,
-  calculateProgress: originalCalculateProgress
+  calculateProgress: originalCalculateProgress,
+  
 }) => {
   useDocumentTitle("Assessment");
   const [dropdownOpen, setDropdownOpen] = useState(false);

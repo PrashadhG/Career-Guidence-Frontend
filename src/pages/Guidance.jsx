@@ -95,35 +95,49 @@ const Guidance = () => {
     }
   }, []);
 
+  const SESSION_EXPIRATION_TIME = 24 * 60 * 60 * 1000;
+
   useEffect(() => {
     const savedAssessment = localStorage.getItem('currentAssessment');
     if (savedAssessment) {
-      const {
-        level,
-        questions,
-        answers,
-        result,
-        selectedCareer,
-        activities,
-        userResponse,
-        evaluationResult,
-        currentCategory,
-        currentQuestionIndex,
-        activeTab
-      } = JSON.parse(savedAssessment);
+      try {
+        const data = JSON.parse(savedAssessment);
+        
+        // Check if session is expired
+        if (data.timestamp && Date.now() - data.timestamp < SESSION_EXPIRATION_TIME) {
+          const {
+            level,
+            questions,
+            answers,
+            result,
+            selectedCareer,
+            activities,
+            userResponse,
+            evaluationResult,
+            currentCategory,
+            currentQuestionIndex,
+            activeTab
+          } = data;
 
-      if (activeTab !== 'dashboard' && activeTab !== 'reports') {
-        setLevel(level);
-        setQuestions(questions);
-        setAnswers(answers);
-        if (result) setResult(result);
-        if (selectedCareer) setSelectedCareer(selectedCareer);
-        if (activities) setActivities(activities);
-        if (userResponse) setUserResponse(userResponse);
-        if (evaluationResult) setEvaluationResult(evaluationResult);
-        setCurrentCategory(currentCategory);
-        setCurrentQuestionIndex(currentQuestionIndex);
-        setActiveTab(activeTab);
+          if (activeTab !== 'dashboard' && activeTab !== 'reports') {
+            setLevel(level);
+            setQuestions(questions);
+            setAnswers(answers);
+            if (result) setResult(result);
+            if (selectedCareer) setSelectedCareer(selectedCareer);
+            if (activities) setActivities(activities);
+            if (userResponse) setUserResponse(userResponse);
+            if (evaluationResult) setEvaluationResult(evaluationResult);
+            setCurrentCategory(currentCategory);
+            setCurrentQuestionIndex(currentQuestionIndex);
+            setActiveTab(activeTab);
+          }
+        } else {
+          localStorage.removeItem('currentAssessment');
+        }
+      } catch (error) {
+        console.error("Error parsing saved assessment:", error);
+        localStorage.removeItem('currentAssessment');
       }
     }
   }, []);
@@ -141,7 +155,8 @@ const Guidance = () => {
         evaluationResult,
         currentCategory,
         currentQuestionIndex,
-        activeTab
+        activeTab,
+        timestamp: Date.now()
       };
       localStorage.setItem('currentAssessment', JSON.stringify(assessmentState));
     }
@@ -162,10 +177,14 @@ const Guidance = () => {
   useEffect(() => {
     const handleBeforeUnload = (e) => {
       if (activeTab !== 'dashboard' && activeTab !== 'reports') {
-        e.preventDefault();
-        setShowReloadModal(true);
-        e.returnValue = '';
-        return '';
+        localStorage.removeItem('currentAssessment');
+        
+        // Show confirmation dialog if there's unsaved progress
+        if (Object.keys(answers).length > 0) {
+          e.preventDefault();
+          e.returnValue = 'You have unsaved assessment progress. Are you sure you want to leave?';
+          return e.returnValue;
+        }
       }
     };
 
@@ -173,8 +192,15 @@ const Guidance = () => {
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      localStorage.removeItem('currentAssessment');
     };
-  }, [activeTab]);
+  }, [activeTab, answers]);
+
+  useEffect(() => {
+    return () => {
+      localStorage.removeItem('currentAssessment');
+    };
+  }, []);
 
   const handleStartAssessment = () => {
     setActiveTab("assessment");
