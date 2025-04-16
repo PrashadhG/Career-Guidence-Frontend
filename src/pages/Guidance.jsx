@@ -43,6 +43,7 @@ const Guidance = () => {
   const [reportsError, setReportsError] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showUnansweredModal, setShowUnansweredModal] = useState(false);
+  const [showReloadModal, setShowReloadModal] = useState(false);
   const navigate = useNavigate();
 
   const calculateProgress = () => {
@@ -94,6 +95,87 @@ const Guidance = () => {
     }
   }, []);
 
+  useEffect(() => {
+    const savedAssessment = localStorage.getItem('currentAssessment');
+    if (savedAssessment) {
+      const {
+        level,
+        questions,
+        answers,
+        result,
+        selectedCareer,
+        activities,
+        userResponse,
+        evaluationResult,
+        currentCategory,
+        currentQuestionIndex,
+        activeTab
+      } = JSON.parse(savedAssessment);
+
+      if (activeTab !== 'dashboard' && activeTab !== 'reports') {
+        setLevel(level);
+        setQuestions(questions);
+        setAnswers(answers);
+        if (result) setResult(result);
+        if (selectedCareer) setSelectedCareer(selectedCareer);
+        if (activities) setActivities(activities);
+        if (userResponse) setUserResponse(userResponse);
+        if (evaluationResult) setEvaluationResult(evaluationResult);
+        setCurrentCategory(currentCategory);
+        setCurrentQuestionIndex(currentQuestionIndex);
+        setActiveTab(activeTab);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab !== 'dashboard' && activeTab !== 'reports') {
+      const assessmentState = {
+        level,
+        questions,
+        answers,
+        result,
+        selectedCareer,
+        activities,
+        userResponse,
+        evaluationResult,
+        currentCategory,
+        currentQuestionIndex,
+        activeTab
+      };
+      localStorage.setItem('currentAssessment', JSON.stringify(assessmentState));
+    }
+  }, [
+    level,
+    questions,
+    answers,
+    result,
+    selectedCareer,
+    activities,
+    userResponse,
+    evaluationResult,
+    currentCategory,
+    currentQuestionIndex,
+    activeTab
+  ]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (activeTab !== 'dashboard' && activeTab !== 'reports') {
+        e.preventDefault();
+        setShowReloadModal(true);
+        e.returnValue = '';
+        return '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [activeTab]);
+
   const handleStartAssessment = () => {
     setActiveTab("assessment");
     setLevel("");
@@ -107,6 +189,7 @@ const Guidance = () => {
   };
 
   const resetAssessmentState = () => {
+    localStorage.removeItem('currentAssessment');
     setLevel("");
     setQuestions({ personality: [], orientation: [], interest: [], aptitude: [] });
     setAnswers({});

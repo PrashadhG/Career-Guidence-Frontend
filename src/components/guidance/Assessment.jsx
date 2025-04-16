@@ -42,6 +42,20 @@ const Assessment = ({
     return totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
   };
 
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      e.preventDefault();
+      e.returnValue = 'You have unsaved assessment progress. Are you sure you want to leave?';
+      return e.returnValue;
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
+
   // Check if all questions are answered or skipped
   useEffect(() => {
     const totalQuestions = Object.values(questions).flat().length;
