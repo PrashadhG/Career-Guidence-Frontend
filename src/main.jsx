@@ -34,7 +34,6 @@ const ReverseProtectedRoute = ({ children }) => {
 };
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={
@@ -62,9 +61,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="/guidance/reports" element={<Guidance defaultTab="reports" />} />
           <Route path="/reports/:id" element={<ReportDetailPage />} />
         </Route>
-
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </BrowserRouter>
-  </React.StrictMode>
 );

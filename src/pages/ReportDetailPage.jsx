@@ -19,10 +19,11 @@ const ReportDetailPage = () => {
 
   useDocumentTitle('Report Details');
 
+  // Check if the user is authenticated and fetch the report data
   useEffect(() => {
     const fetchReport = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/api/reports/${id}`, {
+        const res = await api.get(`/reports/${id}`, {
           headers: { 'x-auth-token': localStorage.getItem('token') }
         });
         setReport(res.data);
@@ -35,6 +36,7 @@ const ReportDetailPage = () => {
     fetchReport();
   }, [id]);
 
+  // Fetch the user name
   useEffect(() => {
     const fetchUserName = async () => {
       try {
@@ -49,7 +51,9 @@ const ReportDetailPage = () => {
         setUserName('');
       }
     };
-
+    
+    // Check if the user is authenticated before fetching the user name
+    // This is to prevent unnecessary API calls if the user is not authenticated
     const token = localStorage.getItem('token');
     if (token) {
       fetchUserName();
@@ -58,6 +62,8 @@ const ReportDetailPage = () => {
     }
   }, []);
 
+  // Handle PDF download
+  // This function generates a PDF from the reportRef element and triggers a download
   const handleDownload = async () => {
     if (!reportRef.current) return;
     try {
@@ -133,7 +139,9 @@ const ReportDetailPage = () => {
       setIsLoading(false);
     }
   };
-
+  
+  // Function to find a safe split point in the canvas
+  // This function checks the canvas for a safe split point to avoid cutting through text or images
   const findSafeSplit = (canvas, proposedY, searchRange = 40) => {
     const ctx = canvas.getContext('2d');
     const width = canvas.width;
@@ -158,7 +166,7 @@ const ReportDetailPage = () => {
     return bestY;
   };
 
-  const handlePrint = () => window.print(); 
+  //const handlePrint = () => window.print(); 
 
   if (error) {
     return (

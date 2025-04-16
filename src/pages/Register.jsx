@@ -23,6 +23,7 @@ function Register() {
   const navigate = useNavigate();
   useDocumentTitle("Register");
 
+  // Check if the user is already logged in
   const validate = () => {
     let isValid = true;
     const newErrors = {
@@ -77,6 +78,7 @@ function Register() {
     return isValid;
   };
 
+  // Check if the user is already logged in
   const handleRegister = async (e) => {
     e.preventDefault();
     if (!validate()) return;
@@ -122,6 +124,7 @@ function Register() {
     }
   };
 
+  // Check if the user is already logged in
   const handleChange = (e) => {
     const { name, value } = e.target;
     

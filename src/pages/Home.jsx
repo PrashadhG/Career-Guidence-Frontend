@@ -10,10 +10,12 @@ const Home = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // Set the document title when the component mounts
   useEffect(() => {
     document.title = "CareerPulse Ai";
   }, []);
 
+  // Function to scroll to a specific section
   const scrollToSection = (id) => {
     const element = document.getElementById(id);
     if (element) {

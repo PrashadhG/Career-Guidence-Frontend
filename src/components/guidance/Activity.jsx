@@ -12,13 +12,14 @@ const Activity = ({
   handleSubmitActivityResponse,
   saveReport
 }) => {
+
   const handleContextMenu = (e) => {
     if (e.target.tagName.toLowerCase() !== 'textarea') {
       e.preventDefault();
     }
   };
-
   useDocumentTitle("Career Activity");
+  
   return (
     <motion.div
       className="bg-gray-800 bg-opacity-50 rounded-xl p-6 backdrop-blur-sm"

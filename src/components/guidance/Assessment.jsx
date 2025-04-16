@@ -26,7 +26,7 @@ const Assessment = ({
   const [allQuestionsAnswered, setAllQuestionsAnswered] = useState(false);
   const [skippedQuestions, setSkippedQuestions] = useState({});
 
-  // New progress calculation that only counts answered questions
+  // Calculation that only counts answered questions
   const calculateAnsweredProgress = () => {
     let answeredCount = 0;
     const totalQuestions = Object.values(questions).flat().length;
@@ -42,7 +42,9 @@ const Assessment = ({
 
     return totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
   };
-
+  
+  // Handle beforeunload event to warn user about unsaved changes
+  // This will trigger when the user tries to leave the page or refresh it
   useEffect(() => {
     const handleBeforeUnload = (e) => {
       e.preventDefault();
@@ -57,7 +59,7 @@ const Assessment = ({
     };
   }, []);
 
-
+  // Check if all questions are answered or skipped
   useEffect(() => {
     const totalQuestions = Object.values(questions).flat().length;
     const answeredCount = Object.keys(answers).length;
@@ -80,6 +82,8 @@ const Assessment = ({
     setAllQuestionsAnswered(answeredCount + Object.keys(updatedSkipped).length === totalQuestions);
   }, [answers, questions, skippedQuestions]);
 
+  // Function to get the status of a question based on its category and index
+  // This function checks if the question is active, answered, skipped, or unanswered
   const getQuestionStatus = (category, index) => {
     const questionId = questions[category][index]?.id || `${category}_${index + 1}`;
     if (currentCategory === category && currentQuestionIndex === index) {
@@ -91,11 +95,14 @@ const Assessment = ({
     return answers[questionId] ? 'answered' : 'unanswered';
   };
 
+  // Function to handle question navigation
+  // This function updates the current category and question index when a question is clicked in the navigation grid
   const handleQuestionNavigation = (category, index) => {
     setCurrentCategory(category);
     setCurrentQuestionIndex(index);
   };
 
+  // Function to handle skipping a question
   const handleSkipQuestion = () => {
     const questionId = questions[currentCategory][currentQuestionIndex].id ||
       `${currentCategory}_${currentQuestionIndex + 1}`;
@@ -103,15 +110,13 @@ const Assessment = ({
     handleNextQuestion();
   };
 
-
-
+  // Function to handle answer selection with skip update
   const handleAnswerSelectWithSkipUpdate = (category, questionId, selectedOption) => {
     // If the same option is clicked again, unselect it
     if (answers[questionId] === selectedOption[0]) {
       handleAnswerSelect(category, questionId, null); // Pass null to indicate deselection
       return;
     }
-
     // Remove from skipped if it exists
     if (skippedQuestions[questionId]) {
       setSkippedQuestions(prev => {

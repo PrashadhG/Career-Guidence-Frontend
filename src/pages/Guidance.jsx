@@ -42,10 +42,6 @@ const Guidance = ({ defaultTab = "dashboard" }) => {
   const [reportsError, setReportsError] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showUnansweredModal, setShowUnansweredModal] = useState(false);
-  
-  const { pathname } = useLocation();
-  const navigate = useNavigate();
-  
   const [activeTab, setActiveTab] = useState(() => {
     const tabFromPath = pathname.split('/').pop();
     return ['dashboard', 'assessment', 'reports'].includes(tabFromPath) 
@@ -53,13 +49,22 @@ const Guidance = ({ defaultTab = "dashboard" }) => {
       : defaultTab;
   });
 
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  
+  //pathname is used to determine the active tab when the component mounts
+  // This is to ensure that the active tab is set correctly when the component mounts
+  // and to handle the case when the user navigates directly to a specific tab
   useEffect(() => {
     const tabFromPath = pathname.split('/').pop();
     if (tabFromPath !== activeTab && ['dashboard', 'assessment', 'reports'].includes(activeTab)) {
       navigate(`/guidance/${activeTab}`);
     }
   }, [activeTab, pathname, navigate]);
-
+  
+  // Calculate progress based on current category and question index
+  // This is to update the progress bar in the assessment section
+  // and to ensure that the progress is calculated correctly when navigating between categories
   const calculateProgress = () => {
     const categories = Object.keys(questions);
     if (categories.length === 0) return 0;
@@ -70,6 +75,9 @@ const Guidance = ({ defaultTab = "dashboard" }) => {
     return Math.min(100, categoryProgress + questionProgress);
   };
 
+  // Fetch saved reports when the active tab is 'reports' or 'dashboard'
+  // This is to ensure that the reports are loaded when the user navigates to these tabs
+  // and to handle the case when the user is not authenticated
   useEffect(() => {
     const fetchReports = async () => {
       setLoadingReports(true);
@@ -91,7 +99,10 @@ const Guidance = ({ defaultTab = "dashboard" }) => {
       fetchReports();
     }
   }, [activeTab, isSaving]);
-
+  
+  //fetch user name from API
+  // This is to display the user's name in the dashboard and reports sections
+  // and to ensure that the user is authenticated before accessing these sections
   useEffect(() => {
     const fetchUserName = async () => {
       try {
@@ -113,15 +124,16 @@ const Guidance = ({ defaultTab = "dashboard" }) => {
     }
   }, []);
 
+  // Set active tab based on URL path or saved state
+  // This is to ensure that the active tab is set correctly when the component mounts
+  // and to handle the case when the user navigates directly to a specific tab
   useEffect(() => {
-    // Check URL path first to determine active tab
     const path = window.location.pathname;
     if (path.includes('/reports')) {
       setActiveTab('reports');
       return;
     }
 
-    // Fall back to localStorage if URL doesn't indicate reports
     const savedTab = localStorage.getItem('activeTab');
     if (savedTab) {
       setActiveTab(savedTab);
@@ -152,7 +164,10 @@ const Guidance = ({ defaultTab = "dashboard" }) => {
       }
     }
   }, []);
-
+  
+  // Save active tab and assessment state to local storage
+  // This is to persist the state across page reloads 
+  // and to ensure that the assessment state is saved when navigating away from the assessment tab
   useEffect(() => {
     localStorage.setItem('activeTab', activeTab);
     
@@ -187,13 +202,17 @@ const Guidance = ({ defaultTab = "dashboard" }) => {
     currentCategory,
     currentQuestionIndex
   ]);
-
+  
+  // Clear assessment state when navigating to dashboard or reports
+  // This is to ensure that the assessment state is cleared when navigating away from the assessment tab
+  // and to handle the case when the user navigates directly to these tabs
   useEffect(() => {
     if (activeTab === 'dashboard' || activeTab === 'reports') {
       localStorage.removeItem('currentAssessment');
     }
   }, [activeTab]);
-
+  
+  // Handle starting a new assessment
   const handleStartAssessment = () => {
     localStorage.removeItem('currentAssessment');
     setActiveTab("assessment");
@@ -208,6 +227,7 @@ const Guidance = ({ defaultTab = "dashboard" }) => {
     navigate('/guidance/assessment');
   };
 
+  // Reset assessment state
   const resetAssessmentState = () => {
     localStorage.removeItem('currentAssessment');
     setLevel("");
@@ -222,11 +242,14 @@ const Guidance = ({ defaultTab = "dashboard" }) => {
     setCurrentQuestionIndex(0);
   };
 
+  // Navigate to a specific report
   const navigateToReport = (reportId) => {
     navigate(`/reports/${reportId}`);
     setActiveTab('reports');
   };
 
+  // Handle starting the quiz
+  // This is to fetch the questions from the API and set the initial state for the assessment
   const handleStartQuiz = async () => {
     if (!level) return alert("Please select a grade!");
     setIsGeneratingQuestions(true);
@@ -253,6 +276,8 @@ const Guidance = ({ defaultTab = "dashboard" }) => {
     }
   };
 
+  // Handle selecting an answer for a question
+  // This is to update the answers state when the user selects an answer for a question
   const handleAnswerSelect = (category, questionId, selectedOption) => {
     setAnswers(prev => {
       if (selectedOption === null) {
@@ -281,6 +306,8 @@ const Guidance = ({ defaultTab = "dashboard" }) => {
     }
   };
 
+  // Handle going to the previous question
+  // This is to update the current question index when the user navigates to the previous question
   const handlePrevQuestion = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
@@ -294,6 +321,8 @@ const Guidance = ({ defaultTab = "dashboard" }) => {
     }
   };
 
+  // Handle submitting the assessment
+  // This is to format the answers and send them to the API for analysis
   const submitAssessment = async () => {
     setIsSubmittingAssessment(true);
     setShowUnansweredModal(false);
@@ -335,6 +364,8 @@ const Guidance = ({ defaultTab = "dashboard" }) => {
     }
   };
 
+  // Handle submitting the quiz
+  // This is to check if all questions are answered before submitting the assessment
   const handleSubmitQuiz = async () => {
     const totalQuestions = Object.values(questions).flat().length;
     const answeredQuestions = Object.keys(answers).length;
@@ -366,7 +397,9 @@ const Guidance = ({ defaultTab = "dashboard" }) => {
       setIsGeneratingActivities(false);
     }
   };
-
+  
+  // Handle submitting the activity response
+  // This is to send the user's response to the API for evaluation
   const handleSubmitActivityResponse = async () => {
     if (!userResponse.trim()) return alert("Please enter your response!");
     setIsSubmittingResponse(true);
@@ -390,6 +423,8 @@ const Guidance = ({ defaultTab = "dashboard" }) => {
     }
   };
 
+  // Handle saving the report
+  // This is to send the assessment results and user data to the API for saving
   const saveReport = async () => {
     if (!result) return;
 
@@ -418,6 +453,7 @@ const Guidance = ({ defaultTab = "dashboard" }) => {
     }
   };
 
+  // Handle navigating to a specific tab
   const getCareerMatchScore = (career) => {
     if (!result) return 0;
     let score = 0;

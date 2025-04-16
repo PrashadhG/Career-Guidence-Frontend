@@ -19,6 +19,7 @@ const Login = () => {
   const navigate = useNavigate();
   useDocumentTitle("Login");
 
+  // Check if the user is already logged in
   useEffect(() => {
     const rememberedEmail = localStorage.getItem("rememberedEmail");
     if (rememberedEmail) {
@@ -27,6 +28,7 @@ const Login = () => {
     }
   }, []);
 
+  // Check if the user is already logged in
   const handleLogin = async (e) => {
     e.preventDefault();
     setErrors({ email: "", password: "", message: "" });
