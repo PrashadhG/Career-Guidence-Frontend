@@ -186,7 +186,7 @@ const Assessment = ({
                 <div className="relative">
                   <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
-                    className="flex items-center justify-between bg-gray-600 text-white rounded-lg px-3 py-1 text-sm"
+                    className="flex items-center justify-between bg-gray-600 text-white rounded-lg px-3 py-1 text-sm cursor-pointer"
                     aria-haspopup="listbox"
                     aria-expanded={dropdownOpen}
                   >

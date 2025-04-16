@@ -23,13 +23,13 @@ const Dashboard = ({
 
   const handleStartWithSidebarClose = () => {
     setSidebarOpen(false);
-    handleStartAssessment();
+    handleStartAssessment(); 
   };
 
   return (
     <div className="h-full overflow-y-auto">
       <motion.div
-        className="w-full h-48 rounded-2xl bg-gradient-to-r from-purple-800 to-blue-800 p-8 flex flex-col justify-center relative overflow-hidden mb-8"
+        className="w-full h-48 rounded-2xl bg-gradient-to-r from-purple-800 to-blue-800 p-8 flex flex-col justify-center relative overflow-hidden mb-8 cursor-pointer"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}

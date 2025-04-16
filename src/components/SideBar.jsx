@@ -52,7 +52,7 @@ const Sidebar = ({ activePage, setActivePage, sidebarOpen, setSidebarOpen }) => 
       {!sidebarOpen && (
         <button
           onClick={toggleSidebar}
-          className="fixed top-4 left-4 z-50 p-2 rounded-md bg-[#364153] text-white hover:bg-[#4a5568] transition-colors"
+          className="fixed top-4 left-4 z-50 p-2 rounded-md bg-[#364153] text-white hover:bg-[#4a5568] transition-colors cursor-pointer"
         >
           <Menu className="h-6 w-6" />
         </button>
@@ -84,8 +84,8 @@ const Sidebar = ({ activePage, setActivePage, sidebarOpen, setSidebarOpen }) => 
             onClick={() => handlePageChange('dashboard')}
             className={`w-full flex items-center space-x-2 p-3 rounded-lg mb-2 transition-colors ${
               activePage === 'dashboard'
-                ? 'bg-white/10 text-white'
-                : 'text-gray-300 hover:bg-white/5'
+                ? 'bg-white/10 text-white cursor-pointer'
+                : 'text-gray-300 hover:bg-white/5 cursor-pointer'
             }`}
           >
             <LayoutDashboard className="h-5 w-5" />
@@ -96,8 +96,8 @@ const Sidebar = ({ activePage, setActivePage, sidebarOpen, setSidebarOpen }) => 
             onClick={() => handlePageChange('assessment')}
             className={`w-full flex items-center space-x-2 p-3 rounded-lg mb-2 transition-colors ${
               activePage === 'assessment'
-                ? 'bg-white/10 text-white'
-                : 'text-gray-300 hover:bg-white/5'
+                ? 'bg-white/10 text-white cursor-pointer'
+                : 'text-gray-300 hover:bg-white/5 cursor-pointer'
             }`}
           >
             <ClipboardList className="h-5 w-5" />
@@ -109,8 +109,8 @@ const Sidebar = ({ activePage, setActivePage, sidebarOpen, setSidebarOpen }) => 
             onClick={() => handlePageChange('reports')}
             className={`w-full flex items-center space-x-2 p-3 rounded-lg mb-2 transition-colors ${
               activePage === 'reports'
-                ? 'bg-white/10 text-white'
-                : 'text-gray-300 hover:bg-white/5'
+                ? 'bg-white/10 text-white cursor-pointer'
+                : 'text-gray-300 hover:bg-white/5 cursor-pointer'
             }`}
           >
             <FileText className="h-5 w-5" />
@@ -122,7 +122,7 @@ const Sidebar = ({ activePage, setActivePage, sidebarOpen, setSidebarOpen }) => 
         <div className="p-4 border-t border-gray-700">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center space-x-2 p-3 rounded-lg hover:bg-white/10 transition-colors"
+            className="w-full flex items-center space-x-2 p-3 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
           >
             <LogOut className="h-5 w-5" />
             {sidebarOpen && <span>Logout</span>}

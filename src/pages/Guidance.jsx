@@ -42,15 +42,16 @@ const Guidance = ({ defaultTab = "dashboard" }) => {
   const [reportsError, setReportsError] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showUnansweredModal, setShowUnansweredModal] = useState(false);
+
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+
   const [activeTab, setActiveTab] = useState(() => {
     const tabFromPath = pathname.split('/').pop();
     return ['dashboard', 'assessment', 'reports'].includes(tabFromPath) 
       ? tabFromPath 
       : defaultTab;
   });
-
-  const { pathname } = useLocation();
-  const navigate = useNavigate();
   
   //pathname is used to determine the active tab when the component mounts
   // This is to ensure that the active tab is set correctly when the component mounts
@@ -355,7 +356,6 @@ const Guidance = ({ defaultTab = "dashboard" }) => {
       const res = await axios.post("http://127.0.0.1:8000/analyze_complete_assessment", formattedAnswers);
       setResult(res.data);
       setActiveTab("results");
-      navigate('/guidance/results');
     } catch (error) {
       console.error("Error analyzing assessment:", error);
       alert("Failed to submit assessment. Please try again.");
@@ -390,7 +390,6 @@ const Guidance = ({ defaultTab = "dashboard" }) => {
       const res = await axios.post("http://127.0.0.1:8000/generate_activities", requestData);
       setActivities(res.data.activities);
       setActiveTab("activity");
-      navigate('/guidance/activity');
     } catch (error) {
       console.error("Error fetching activities:", error);
     } finally {
@@ -415,7 +414,6 @@ const Guidance = ({ defaultTab = "dashboard" }) => {
       const res = await axios.post("http://127.0.0.1:8000/evaluate_activity/", requestData);
       setEvaluationResult(res.data.evaluation);
       setActiveTab("evaluation");
-      navigate('/guidance/evaluation');
     } catch (error) {
       console.error("Error evaluating response:", error);
     } finally {

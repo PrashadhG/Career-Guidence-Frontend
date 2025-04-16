@@ -1,11 +1,10 @@
 import { motion } from "framer-motion";
-import { FiChevronRight, FiTrash2 } from "react-icons/fi";
+import { FiTrash2 } from "react-icons/fi";
 import { useState } from "react";
 import CustomModal from "../CustomModel";
 import api from "../../utils/api";
 import { Loader2 } from "lucide-react";
 import useDocumentTitle from '../title';
-
 
 const Reports = ({
   savedReports,
@@ -55,7 +54,7 @@ const Reports = ({
   };
 
   return (
-    <div className="bg-gray-800 bg-opacity-50 rounded-xl p-6 backdrop-blur-sm relative min-h-[400px]">
+    <div className="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm relative min-h-[400px]">
       <h2 className="text-3xl font-bold mb-6">📚 My Saved Reports</h2>
 
       <CustomModal
@@ -69,7 +68,7 @@ const Reports = ({
       />
 
       {error ? (
-        <div className="text-center py-16 bg-gray-800/30 rounded-xl">
+        <div className="text-center py-16 bg-gray-800/50 rounded-xl">
           <div className="h-16 w-16 text-red-400 mx-auto mb-4">⚠️</div>
           <h3 className="text-xl font-medium text-white mb-2">Error Loading Reports</h3>
           <p className="text-gray-300">{error}</p>
@@ -96,7 +95,7 @@ const Reports = ({
           {savedReports.map(report => (
             <motion.div
               key={report._id}
-              className="bg-gray-700 rounded-xl p-5 hover:shadow-lg transition-shadow cursor-pointer relative group flex flex-col h-full"
+              className="bg-gray-800/50 border border-gray-700 rounded-xl p-5 hover:shadow-lg transition-shadow cursor-pointer relative group flex flex-col h-full"
               whileHover={{ y: -5 }}
               onClick={() => navigate(`/reports/${report._id}`)}
             >
@@ -113,13 +112,14 @@ const Reports = ({
               </div>
 
               <div className="flex justify-between items-center mt-auto">
-                <span className={`text-sm ${report.evaluationResults?.length ? "text-green-300" : "text-yellow-300"
-                  }`}>
+                <span className={`text-sm ${
+                  report.evaluationResults?.length ? "text-green-300" : "text-yellow-300"
+                }`}>
                   {report.evaluationResults?.length ? "Completed" : "In Progress"}
                 </span>
                 <button
                   onClick={(e) => handleDeleteClick(report, e)}
-                  className="p-1 text-gray-400 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+                  className="p-1 text-gray-400 hover:text-red-400 transition-colors cursor-pointer"
                   aria-label="Delete report"
                 >
                   {isDeleting ? (
