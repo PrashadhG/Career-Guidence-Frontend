@@ -95,44 +95,41 @@ const Guidance = () => {
     }
   }, []);
 
-  const SESSION_EXPIRATION_TIME = 24 * 60 * 60 * 1000;
-
   useEffect(() => {
     const savedAssessment = localStorage.getItem('currentAssessment');
     if (savedAssessment) {
       try {
         const data = JSON.parse(savedAssessment);
-        
-        // Check if session is expired
-        if (data.timestamp && Date.now() - data.timestamp < SESSION_EXPIRATION_TIME) {
-          const {
-            level,
-            questions,
-            answers,
-            result,
-            selectedCareer,
-            activities,
-            userResponse,
-            evaluationResult,
-            currentCategory,
-            currentQuestionIndex,
-            activeTab
-          } = data;
-
-          if (activeTab !== 'dashboard' && activeTab !== 'reports') {
-            setLevel(level);
-            setQuestions(questions);
-            setAnswers(answers);
-            if (result) setResult(result);
-            if (selectedCareer) setSelectedCareer(selectedCareer);
-            if (activities) setActivities(activities);
-            if (userResponse) setUserResponse(userResponse);
-            if (evaluationResult) setEvaluationResult(evaluationResult);
-            setCurrentCategory(currentCategory);
-            setCurrentQuestionIndex(currentQuestionIndex);
-            setActiveTab(activeTab);
-          }
+        const {
+          level,
+          questions,
+          answers,
+          result,
+          selectedCareer,
+          activities,
+          userResponse,
+          evaluationResult,
+          currentCategory,
+          currentQuestionIndex,
+          activeTab
+        } = data;
+  
+        // Only restore state if we're not on dashboard/reports and user is still authenticated
+        const token = localStorage.getItem('token');
+        if (token && activeTab !== 'dashboard' && activeTab !== 'reports') {
+          setLevel(level);
+          setQuestions(questions);
+          setAnswers(answers);
+          if (result) setResult(result);
+          if (selectedCareer) setSelectedCareer(selectedCareer);
+          if (activities) setActivities(activities);
+          if (userResponse) setUserResponse(userResponse);
+          if (evaluationResult) setEvaluationResult(evaluationResult);
+          setCurrentCategory(currentCategory);
+          setCurrentQuestionIndex(currentQuestionIndex);
+          setActiveTab(activeTab);
         } else {
+          // Clear if no token or on dashboard/reports
           localStorage.removeItem('currentAssessment');
         }
       } catch (error) {
@@ -141,9 +138,11 @@ const Guidance = () => {
       }
     }
   }, []);
-
+  
   useEffect(() => {
-    if (activeTab !== 'dashboard' && activeTab !== 'reports') {
+    // Only save state if we're in an active assessment and user is authenticated
+    const token = localStorage.getItem('token');
+    if (token && activeTab !== 'dashboard' && activeTab !== 'reports') {
       const assessmentState = {
         level,
         questions,
@@ -156,7 +155,7 @@ const Guidance = () => {
         currentCategory,
         currentQuestionIndex,
         activeTab,
-        timestamp: Date.now()
+        timestamp: Date.now() // Add timestamp for expiration checks
       };
       localStorage.setItem('currentAssessment', JSON.stringify(assessmentState));
     }
@@ -173,36 +172,21 @@ const Guidance = () => {
     currentQuestionIndex,
     activeTab
   ]);
-
+  
+  // Add this effect to clear storage on logout or when saving
   useEffect(() => {
-    const handleBeforeUnload = (e) => {
-      if (activeTab !== 'dashboard' && activeTab !== 'reports') {
+    const handleStorageClear = () => {
+      if (activeTab === 'dashboard' || activeTab === 'reports') {
         localStorage.removeItem('currentAssessment');
-        
-        // Show confirmation dialog if there's unsaved progress
-        if (Object.keys(answers).length > 0) {
-          e.preventDefault();
-          e.returnValue = 'You have unsaved assessment progress. Are you sure you want to leave?';
-          return e.returnValue;
-        }
       }
     };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      localStorage.removeItem('currentAssessment');
-    };
-  }, [activeTab, answers]);
-
-  useEffect(() => {
-    return () => {
-      localStorage.removeItem('currentAssessment');
-    };
-  }, []);
-
+  
+    return handleStorageClear;
+  }, [activeTab]);
+  
   const handleStartAssessment = () => {
+    // Clear any previous assessment data
+    localStorage.removeItem('currentAssessment');
     setActiveTab("assessment");
     setLevel("");
     setQuestions({ personality: [], orientation: [], interest: [], aptitude: [] });
@@ -213,7 +197,7 @@ const Guidance = () => {
     setUserResponse("");
     setEvaluationResult(null);
   };
-
+  
   const resetAssessmentState = () => {
     localStorage.removeItem('currentAssessment');
     setLevel("");

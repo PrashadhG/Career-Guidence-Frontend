@@ -57,13 +57,12 @@ const Assessment = ({
     };
   }, []);
 
-  // Check if all questions are answered or skipped
+
   useEffect(() => {
     const totalQuestions = Object.values(questions).flat().length;
     const answeredCount = Object.keys(answers).length;
     const skippedCount = Object.keys(skippedQuestions).length;
 
-    // Remove any skipped questions that have since been answered
     const updatedSkipped = { ...skippedQuestions };
     let hasChanges = false;
 
