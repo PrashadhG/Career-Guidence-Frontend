@@ -37,11 +37,11 @@ const Sidebar = ({ activePage, setActivePage, sidebarOpen, setSidebarOpen }) => 
 
   const handlePageChange = (page) => {
     setActivePage(page);
-    // Always close sidebar when selecting assessment tab
+    navigate(`/guidance/${page}`);
+    
     if (page === 'assessment') {
       setSidebarOpen(false);
     } else if (window.innerWidth < 768) {
-      // Close sidebar on mobile for any page selection
       setSidebarOpen(false);
     }
   };

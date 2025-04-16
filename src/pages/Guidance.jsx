@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import api from "../utils/api";
 import { v4 as uuidv4 } from "uuid";
-import { useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import ProgressStepper from "../components/guidance/ProgressStepper";
 import Assessment from "../components/guidance/Assessment";
 import Results from "../components/guidance/Result";
@@ -13,7 +13,7 @@ import Dashboard from "../components/guidance/DashBoard";
 import Sidebar from "../components/SideBar";
 import CustomModal from "../components/CustomModel";
 
-const Guidance = () => {
+const Guidance = ({ defaultTab = "dashboard" }) => {
   const token = localStorage.getItem("token");
   const [level, setLevel] = useState("");
   const [userName, setUserName] = useState('');
@@ -31,7 +31,6 @@ const Guidance = () => {
   const [evaluationResult, setEvaluationResult] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [savedReports, setSavedReports] = useState([]);
-  const [activeTab, setActiveTab] = useState("dashboard");
   const [assessmentId] = useState(uuidv4());
   const [currentCategory, setCurrentCategory] = useState('personality');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -43,8 +42,23 @@ const Guidance = () => {
   const [reportsError, setReportsError] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showUnansweredModal, setShowUnansweredModal] = useState(false);
-  const [showReloadModal, setShowReloadModal] = useState(false);
+  
+  const { pathname } = useLocation();
   const navigate = useNavigate();
+  
+  const [activeTab, setActiveTab] = useState(() => {
+    const tabFromPath = pathname.split('/').pop();
+    return ['dashboard', 'assessment', 'reports'].includes(tabFromPath) 
+      ? tabFromPath 
+      : defaultTab;
+  });
+
+  useEffect(() => {
+    const tabFromPath = pathname.split('/').pop();
+    if (tabFromPath !== activeTab && ['dashboard', 'assessment', 'reports'].includes(activeTab)) {
+      navigate(`/guidance/${activeTab}`);
+    }
+  }, [activeTab, pathname, navigate]);
 
   const calculateProgress = () => {
     const categories = Object.keys(questions);
@@ -58,6 +72,8 @@ const Guidance = () => {
 
   useEffect(() => {
     const fetchReports = async () => {
+      setLoadingReports(true);
+      setReportsError(null);
       try {
         const res = await api.get("/reports/my");
         setSavedReports(res.data);
@@ -71,22 +87,24 @@ const Guidance = () => {
       }
     };
 
-    fetchReports();
+    if (activeTab === "reports" || activeTab === "dashboard") {
+      fetchReports();
+    }
   }, [activeTab, isSaving]);
-  
+
   useEffect(() => {
     const fetchUserName = async () => {
       try {
         const response = await api.get('/users/me');
-        const name = typeof response.data === 'string' 
-          ? response.data 
+        const name = typeof response.data === 'string'
+          ? response.data
           : response.data.user?.name || response.data.name || '';
-        
+
         setUserName(name);
       } catch (err) {
         console.error('Failed to fetch user name:', err);
         setUserName('');
-      } 
+      }
     };
 
     const token = localStorage.getItem('token');
@@ -96,41 +114,37 @@ const Guidance = () => {
   }, []);
 
   useEffect(() => {
+    // Check URL path first to determine active tab
+    const path = window.location.pathname;
+    if (path.includes('/reports')) {
+      setActiveTab('reports');
+      return;
+    }
+
+    // Fall back to localStorage if URL doesn't indicate reports
+    const savedTab = localStorage.getItem('activeTab');
+    if (savedTab) {
+      setActiveTab(savedTab);
+    }
+
     const savedAssessment = localStorage.getItem('currentAssessment');
     if (savedAssessment) {
       try {
         const data = JSON.parse(savedAssessment);
-        const {
-          level,
-          questions,
-          answers,
-          result,
-          selectedCareer,
-          activities,
-          userResponse,
-          evaluationResult,
-          currentCategory,
-          currentQuestionIndex,
-          activeTab
-        } = data;
-  
-        // Only restore state if we're not on dashboard/reports and user is still authenticated
         const token = localStorage.getItem('token');
-        if (token && activeTab !== 'dashboard' && activeTab !== 'reports') {
-          setLevel(level);
-          setQuestions(questions);
-          setAnswers(answers);
-          if (result) setResult(result);
-          if (selectedCareer) setSelectedCareer(selectedCareer);
-          if (activities) setActivities(activities);
-          if (userResponse) setUserResponse(userResponse);
-          if (evaluationResult) setEvaluationResult(evaluationResult);
-          setCurrentCategory(currentCategory);
-          setCurrentQuestionIndex(currentQuestionIndex);
-          setActiveTab(activeTab);
-        } else {
-          // Clear if no token or on dashboard/reports
-          localStorage.removeItem('currentAssessment');
+        
+        if (token && data.activeTab !== 'dashboard' && data.activeTab !== 'reports') {
+          setLevel(data.level);
+          setQuestions(data.questions);
+          setAnswers(data.answers);
+          if (data.result) setResult(data.result);
+          if (data.selectedCareer) setSelectedCareer(data.selectedCareer);
+          if (data.activities) setActivities(data.activities);
+          if (data.userResponse) setUserResponse(data.userResponse);
+          if (data.evaluationResult) setEvaluationResult(data.evaluationResult);
+          setCurrentCategory(data.currentCategory);
+          setCurrentQuestionIndex(data.currentQuestionIndex);
+          setActiveTab(data.activeTab);
         }
       } catch (error) {
         console.error("Error parsing saved assessment:", error);
@@ -138,9 +152,10 @@ const Guidance = () => {
       }
     }
   }, []);
-  
+
   useEffect(() => {
-    // Only save state if we're in an active assessment and user is authenticated
+    localStorage.setItem('activeTab', activeTab);
+    
     const token = localStorage.getItem('token');
     if (token && activeTab !== 'dashboard' && activeTab !== 'reports') {
       const assessmentState = {
@@ -155,11 +170,12 @@ const Guidance = () => {
         currentCategory,
         currentQuestionIndex,
         activeTab,
-        timestamp: Date.now() // Add timestamp for expiration checks
+        timestamp: Date.now()
       };
       localStorage.setItem('currentAssessment', JSON.stringify(assessmentState));
     }
   }, [
+    activeTab,
     level,
     questions,
     answers,
@@ -169,23 +185,16 @@ const Guidance = () => {
     userResponse,
     evaluationResult,
     currentCategory,
-    currentQuestionIndex,
-    activeTab
+    currentQuestionIndex
   ]);
-  
-  // Add this effect to clear storage on logout or when saving
+
   useEffect(() => {
-    const handleStorageClear = () => {
-      if (activeTab === 'dashboard' || activeTab === 'reports') {
-        localStorage.removeItem('currentAssessment');
-      }
-    };
-  
-    return handleStorageClear;
+    if (activeTab === 'dashboard' || activeTab === 'reports') {
+      localStorage.removeItem('currentAssessment');
+    }
   }, [activeTab]);
-  
+
   const handleStartAssessment = () => {
-    // Clear any previous assessment data
     localStorage.removeItem('currentAssessment');
     setActiveTab("assessment");
     setLevel("");
@@ -196,8 +205,9 @@ const Guidance = () => {
     setActivities([]);
     setUserResponse("");
     setEvaluationResult(null);
+    navigate('/guidance/assessment');
   };
-  
+
   const resetAssessmentState = () => {
     localStorage.removeItem('currentAssessment');
     setLevel("");
@@ -214,6 +224,7 @@ const Guidance = () => {
 
   const navigateToReport = (reportId) => {
     navigate(`/reports/${reportId}`);
+    setActiveTab('reports');
   };
 
   const handleStartQuiz = async () => {
@@ -286,7 +297,7 @@ const Guidance = () => {
   const submitAssessment = async () => {
     setIsSubmittingAssessment(true);
     setShowUnansweredModal(false);
-    
+
     const formattedAnswers = {
       user_id: assessmentId,
       orientation_responses: {},
@@ -300,7 +311,7 @@ const Guidance = () => {
         Verbal_Reasoning: 0
       }
     };
-    
+
     Object.keys(questions).forEach(category => {
       formattedAnswers[`${category}_responses`] = {};
       questions[category].forEach((q, index) => {
@@ -310,11 +321,12 @@ const Guidance = () => {
         }
       });
     });
-    
+
     try {
       const res = await axios.post("http://127.0.0.1:8000/analyze_complete_assessment", formattedAnswers);
       setResult(res.data);
       setActiveTab("results");
+      navigate('/guidance/results');
     } catch (error) {
       console.error("Error analyzing assessment:", error);
       alert("Failed to submit assessment. Please try again.");
@@ -326,12 +338,12 @@ const Guidance = () => {
   const handleSubmitQuiz = async () => {
     const totalQuestions = Object.values(questions).flat().length;
     const answeredQuestions = Object.keys(answers).length;
-    
+
     if (answeredQuestions < totalQuestions) {
       setShowUnansweredModal(true);
       return;
     }
-    
+
     await submitAssessment();
   };
 
@@ -347,6 +359,7 @@ const Guidance = () => {
       const res = await axios.post("http://127.0.0.1:8000/generate_activities", requestData);
       setActivities(res.data.activities);
       setActiveTab("activity");
+      navigate('/guidance/activity');
     } catch (error) {
       console.error("Error fetching activities:", error);
     } finally {
@@ -369,6 +382,7 @@ const Guidance = () => {
       const res = await axios.post("http://127.0.0.1:8000/evaluate_activity/", requestData);
       setEvaluationResult(res.data.evaluation);
       setActiveTab("evaluation");
+      navigate('/guidance/evaluation');
     } catch (error) {
       console.error("Error evaluating response:", error);
     } finally {
@@ -441,7 +455,14 @@ const Guidance = () => {
               userName={userName}
             />
           ) : activeTab === "reports" ? (
-            <Reports savedReports={savedReports} setActiveTab={setActiveTab} navigate={navigate} />
+            <Reports
+              savedReports={savedReports}
+              setSavedReports={setSavedReports}
+              setActiveTab={setActiveTab}
+              navigate={navigate}
+              isLoading={loadingReports}
+              error={reportsError}
+            />
           ) : (
             <>
               {activeTab !== "dashboard" && (
@@ -509,7 +530,7 @@ const Guidance = () => {
                   setActiveTab={setActiveTab}
                   saveReport={saveReport}
                   navigate={navigate}
-                  resetAssessmentState={resetAssessmentState} 
+                  resetAssessmentState={resetAssessmentState}
                 />
               )}
             </>

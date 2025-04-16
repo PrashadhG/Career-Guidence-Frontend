@@ -16,7 +16,6 @@ const ReverseProtectedRoute = ({ children }) => {
 
   React.useEffect(() => {
     if (token) {
-      // Optional: Verify token validity here if needed
       setIsCheckingAuth(false);
     } else {
       setIsCheckingAuth(false);
@@ -31,7 +30,7 @@ const ReverseProtectedRoute = ({ children }) => {
     );
   }
 
-  return token ? <Navigate to="/guidance" replace /> : children;
+  return token ? <Navigate to="/guidance/dashboard" replace /> : children;
 };
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -57,7 +56,10 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 
         {/* Protected Routes - require authentication */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/guidance" element={<Guidance />} />
+          <Route path="/guidance" element={<Navigate to="/guidance/dashboard" replace />} />
+          <Route path="/guidance/dashboard" element={<Guidance defaultTab="dashboard" />} />
+          <Route path="/guidance/assessment" element={<Guidance defaultTab="assessment" />} />
+          <Route path="/guidance/reports" element={<Guidance defaultTab="reports" />} />
           <Route path="/reports/:id" element={<ReportDetailPage />} />
         </Route>
 
