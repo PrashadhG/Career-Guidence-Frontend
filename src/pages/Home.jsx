@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import video from "../assets/video.mp4";
 import { motion } from "framer-motion";
-import { Menu, X, Github, Twitter, Linkedin, Mail, Activity } from 'lucide-react';
+import { Menu, X, Github, Twitter, Linkedin, Mail } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import AboutImage from "../assets/about.png";
 import logo from "../assets/logoColor.png";
