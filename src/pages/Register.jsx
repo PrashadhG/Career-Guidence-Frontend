@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Mail, Lock, User, Eye, EyeOff, Loader2 } from 'lucide-react'; // Added Loader2
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import useDocumentTitle from "../components/title";
 import api from "../utils/api";
 
@@ -255,9 +255,9 @@ function Register() {
 
         <p className="mt-6 text-center text-sm text-gray-300">
           Already have an account?{' '}
-          <a href="/login" className="font-medium text-blue-400 hover:text-blue-300">
+          <Link href="/login" className="font-medium text-blue-400 hover:text-blue-300">
             Login
-          </a>
+          </Link>
         </p>
       </div>
     </div>

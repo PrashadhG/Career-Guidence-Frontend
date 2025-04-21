@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate,Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Mail, Lock, Loader2, Eye, EyeOff } from "lucide-react";
 import api from "../utils/api";
@@ -183,9 +183,9 @@ const Login = () => {
 
         <p className="mt-6 text-center text-sm text-gray-400">
           Don't have an account?{" "}
-          <a href="/register" className="font-medium text-blue-400 hover:text-blue-300">
+          <Link href="/register" className="font-medium text-blue-400 hover:text-blue-300">
             Sign up
-          </a>
+          </Link>
         </p>
       </div>
     </motion.div>
