@@ -260,7 +260,7 @@ const Guidance = ({ defaultTab = "dashboard" }) => {
       questions_per_category: 20
     };
     try {
-      const res = await axios.post("http://127.0.0.1:8000/generate_psychometric_assessment", requestData);
+      const res = await axios.post("https://ml-fastapi-model-career-guidance-system.onrender.com/generate_psychometric_assessment", requestData);
       setQuestions(res.data.questions_by_category);
       setCurrentCategory(Object.keys(res.data.questions_by_category)[0]);
       setCurrentQuestionIndex(0);
@@ -353,7 +353,7 @@ const Guidance = ({ defaultTab = "dashboard" }) => {
     });
 
     try {
-      const res = await axios.post("http://127.0.0.1:8000/analyze_complete_assessment", formattedAnswers);
+      const res = await axios.post("https://ml-fastapi-model-career-guidance-system.onrender.com/analyze_complete_assessment", formattedAnswers);
       setResult(res.data);
       setActiveTab("results");
     } catch (error) {
@@ -387,7 +387,7 @@ const Guidance = ({ defaultTab = "dashboard" }) => {
       specific_area: result.subject_recommendations.core[0]
     };
     try {
-      const res = await axios.post("http://127.0.0.1:8000/generate_activities", requestData);
+      const res = await axios.post("https://ml-fastapi-model-career-guidance-system.onrender.com/generate_activities", requestData);
       setActivities(res.data.activities);
       setActiveTab("activity");
     } catch (error) {
@@ -411,7 +411,7 @@ const Guidance = ({ defaultTab = "dashboard" }) => {
       image_data: ""
     };
     try {
-      const res = await axios.post("http://127.0.0.1:8000/evaluate_activity/", requestData);
+      const res = await axios.post("https://ml-fastapi-model-career-guidance-system.onrender.com/evaluate_activity/", requestData);
       setEvaluationResult(res.data.evaluation);
       setActiveTab("evaluation");
     } catch (error) {
