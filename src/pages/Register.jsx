@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Mail, Lock, User, Eye, EyeOff, Loader2 } from 'lucide-react'; // Added Loader2
 import { useNavigate } from "react-router-dom";
 import useDocumentTitle from "../components/title";
+import api from "../utils/api";
 
 function Register() {
   const [formData, setFormData] = useState({
