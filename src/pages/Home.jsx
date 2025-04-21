@@ -3,7 +3,7 @@ import video from "../assets/video.mp4";
 import { motion } from "framer-motion";
 import { Menu, X, Github, Twitter, Linkedin, Mail } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
-import AboutImage from "../assets/about.png";
+import AboutImage from "../assets/About.png";
 import logo from "../assets/logoColor.png";
 
 const Home = () => {
